@@ -66,8 +66,42 @@
 ```bash
 npm install
 npm run build
-npm run package   # 打包为单文件 .exe
+npm run package   # 打包为单文件 patch.exe
 ```
+
+## 命令行用法
+
+`patch.exe` 支持两种模式：**交互式菜单**（双击运行）和 **子命令**（脚本化）。
+
+```bash
+patch.exe                     # 双击或直接运行：进入交互菜单
+patch.exe --patch             # 一键汉化最新安装的 GitHub Desktop
+patch.exe --restore           # 还原最新安装为英文原版
+patch.exe --status            # 查看所有安装的汉化状态
+patch.exe --help              # 显示帮助
+patch.exe --patch --target=3.6.2     # 汉化指定版本
+patch.exe --restore --target=3.6.2   # 还原指定版本
+```
+
+## 局限说明
+
+本工具以"非侵入式翻译运行时"方式实现汉化，存在以下固有局限：
+
+- **自动更新会失效**：GitHub Desktop 的 Squirrel 更新会创建新的 `app-x.y.z` 目录，汉化对新版本无效。更新后请重新运行 `patch.exe`。
+- **菜单 access key 失效**：原生菜单的 `&` 加速键（如 `&File`）翻译后丢失，中文菜单通常不需要此键。
+- **动态变量文本**：含变量插值的句子（如 `Pushed {n} commits`）通过正则规则翻译。`dict/` 下的规则可能未覆盖所有新动态文本，欢迎补 PR。
+- **部分上下文菜单未覆盖**：本工具劫持的是 `Menu.buildFromTemplate`，部分用 `new MenuItem()` 构造的上下文菜单（如右键菜单）首版未覆盖。
+- **首次启动菜单需重建**：应用首次启动时若菜单在劫持前已构建，需触发一次菜单重建（如切换仓库）才会显示中文。
+- **修改主进程文件**：本工具会修改 `main.js`，已自动备份 `.bak`，异常时可还原或重装 GitHub Desktop。
+
+## 贡献翻译
+
+- 界面文本：编辑 `dict/zh-CN.json`（精确匹配字典）
+- 动态文本规则：编辑 `src/rules.ts`（正则匹配）
+- 渲染运行时模板：编辑 `src/runtime.ts`
+- 菜单劫持模板：编辑 `src/menu-patch.ts`
+
+提交 PR 前请用 `npm run build` 验证编译通过，并附上 GitHub Desktop 截图说明覆盖/新增文本。
 
 ## 许可证
 
