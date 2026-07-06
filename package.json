@@ -11,7 +11,8 @@
     "start": "node dist/main.js",
     "dev": "ts-node src/main.ts",
     "package": "pkg dist/main.js --targets node18-win-x64 --output build/patch.exe",
-    "lint": "eslint src/**/*.ts"
+    "lint": "eslint src/**/*.ts",
+    "test": "npm run build && node --test test/*.test.cjs"
   },
   "keywords": ["github-desktop", "chinese", "translation", "汉化"],
   "author": "",
