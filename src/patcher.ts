@@ -124,16 +124,27 @@ export interface PatchResult {
 }
 
 export function isDesktopRunning(): boolean {
+  const { execSync } = require('child_process')
   try {
-    const { execSync } = require('child_process')
-    const out = execSync('tasklist /FI "IMAGENAME eq GitHubDesktop.exe" /NH /FO CSV', {
-      encoding: 'utf8',
-      windowsHide: true,
-    })
-    return /GitHubDesktop\.exe/i.test(out)
+    if (process.platform === 'win32') {
+      const out = execSync('tasklist /FI "IMAGENAME eq GitHubDesktop.exe" /NH /FO CSV', {
+        encoding: 'utf8',
+        windowsHide: true,
+      })
+      return /GitHubDesktop\.exe/i.test(out)
+    }
+    if (process.platform === 'darwin') {
+      execSync('pgrep -x "GitHub Desktop"', { encoding: 'utf8' })
+      return true
+    }
+    if (process.platform === 'linux') {
+      execSync('pgrep -x "GitHubDesktop"', { encoding: 'utf8' })
+      return true
+    }
   } catch {
     return false
   }
+  return false
 }
 
 export function patch(install: AppInstall, dict: Dict, rules: Rule[]): PatchResult {
