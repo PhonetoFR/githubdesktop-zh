@@ -51,5 +51,15 @@ export function getRules(): Rule[] {
       flags: '',
       replacement: '在 $1 中打开',
     },
+    {
+      pattern: '^Update from (.+)$',
+      flags: '',
+      replacement: '从 $1 更新',
+    },
+    {
+      pattern: '^Last fetched (.+)$',
+      flags: '',
+      replacement: '上次获取于 $1',
+    },
   ]
 }

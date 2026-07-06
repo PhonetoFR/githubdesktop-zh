@@ -54,6 +54,24 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
     }
   }
 
+  function tryTranslateContainer(el) {
+    if (!el || el.nodeType !== 1) return;
+    var hasElementChild = false;
+    for (var c = el.firstChild; c; c = c.nextSibling) {
+      if (c.nodeType === 1) { hasElementChild = true; break; }
+    }
+    if (hasElementChild) return;
+    var txt = el.textContent;
+    if (!txt) return;
+    var trimmed = txt.trim();
+    if (trimmed === '' || CJK.test(trimmed)) return;
+    if (trimmed.length < 4) return;
+    var translated = translate(trimmed);
+    if (translated !== trimmed) {
+      el.textContent = translated;
+    }
+  }
+
   function walk(root) {
     if (!root) return;
     try {
@@ -69,8 +87,10 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
       var els = root.querySelectorAll('*');
       for (var i = 0; i < els.length; i++) {
         translateAttrs(els[i]);
+        tryTranslateContainer(els[i]);
       }
     }
+    tryTranslateContainer(root);
   }
 
   var isApplying = false;
