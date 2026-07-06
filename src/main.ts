@@ -1,4 +1,5 @@
 import { loadDict } from './dict'
+import { getRules } from './rules'
 import { findInstalls, getNewestInstall, findInstallByVersion, AppInstall } from './locator'
 import { patch, restore, getStatus, PatchState, InstallStatus } from './patcher'
 import { menu, close } from './prompt'
@@ -36,6 +37,7 @@ function selectTarget(installs: AppInstall[], versionFlag?: string): AppInstall 
 
 function doPatch(installs: AppInstall[], versionFlag?: string): void {
   const dict = loadDict()
+  const rules = getRules()
   const target = selectTarget(installs, versionFlag)
   const state = getStatus(target).state
   if (state === 'broken') {
@@ -43,7 +45,7 @@ function doPatch(installs: AppInstall[], versionFlag?: string): void {
     return
   }
   log.info(`开始汉化 v${target.version} ...`)
-  const result = patch(target, dict)
+  const result = patch(target, dict, rules)
   log.success(`汉化完成 v${result.version}`)
   process.stdout.write(`  索引注入: ${result.indexPatched ? '成功' : '跳过'}\n`)
   process.stdout.write(`  菜单注入: ${result.mainPatched ? '成功' : '跳过'}\n`)

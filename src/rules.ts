@@ -1,0 +1,55 @@
+export interface Rule {
+  pattern: string
+  flags: string
+  replacement: string
+}
+
+export function getRules(): Rule[] {
+  return [
+    {
+      pattern: '^Last fetched (\\d+) minutes? ago$',
+      flags: '',
+      replacement: '$1 分钟前已获取',
+    },
+    {
+      pattern: '^Last fetched (\\d+) hours? ago$',
+      flags: '',
+      replacement: '$1 小时前已获取',
+    },
+    {
+      pattern: '^Last fetched just now$',
+      flags: '',
+      replacement: '刚刚获取',
+    },
+    {
+      pattern: '^Commit to (.+)$',
+      flags: '',
+      replacement: '提交到 $1',
+    },
+    {
+      pattern: '^(\\d+) changed files?$',
+      flags: '',
+      replacement: '$1 个已更改文件',
+    },
+    {
+      pattern: '^(\\d+) unstudied files?$',
+      flags: '',
+      replacement: '$1 个未查看文件',
+    },
+    {
+      pattern: '^Push (\\d+) commits?$',
+      flags: '',
+      replacement: '推送 $1 个提交',
+    },
+    {
+      pattern: '^Pull (\\d+) commits?$',
+      flags: '',
+      replacement: '拉取 $1 个提交',
+    },
+    {
+      pattern: '^Open in (.+)$',
+      flags: '',
+      replacement: '在 $1 中打开',
+    },
+  ]
+}

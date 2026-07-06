@@ -36,14 +36,21 @@ export function buildMenuPatch(dict: Dict): string {
     });
   }
   try {
-    var electron = require('electron');
-    var Menu = electron.Menu || (electron.default && electron.default.Menu);
-    if (Menu && typeof Menu.buildFromTemplate === 'function') {
-      var orig = Menu.buildFromTemplate.bind(Menu);
-      Menu.buildFromTemplate = function (template) {
-        return orig(patchTemplate(template));
-      };
-    }
+    var Module = require('module');
+    var origLoad = Module._load;
+    Module._load = function (request, parent, isMain) {
+      var mod = origLoad.apply(this, arguments);
+      try {
+        if (request === 'electron' && mod && mod.Menu && typeof mod.Menu.buildFromTemplate === 'function' && !mod.Menu.__zhPatched) {
+          var orig = mod.Menu.buildFromTemplate.bind(mod.Menu);
+          mod.Menu.buildFromTemplate = function (template) {
+            return orig(patchTemplate(template));
+          };
+          mod.Menu.__zhPatched = true;
+        }
+      } catch (e) {}
+      return mod;
+    };
   } catch (e) {}
 })();
 ${PATCH_END}

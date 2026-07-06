@@ -1,14 +1,20 @@
 import { Dict } from './dict'
+import { Rule } from './rules'
 
 const HEADER = `/* GitHub Desktop 汉化运行时 - 由 github-desktop-zh 自动生成，请勿手动编辑 */`
 
-export function buildRuntime(dict: Dict): string {
+export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
   const dictJson = JSON.stringify(dict)
+  const rulesJson = JSON.stringify(
+    rules.map(r => ({ pattern: r.pattern, flags: r.flags, replacement: r.replacement }))
+  )
   return `${HEADER}
 (() => {
   'use strict';
   var DICT = ${dictJson};
-  var RULES = [];
+  var RULES = ${rulesJson}.map(function (r) {
+    return { pattern: new RegExp(r.pattern, r.flags), replacement: r.replacement };
+  });
   var CJK = /[\\u4e00-\\u9fff]/;
   var ATTRS = ['aria-label', 'title', 'placeholder', 'alt'];
 

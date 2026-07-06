@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { AppInstall, backupPath } from './locator'
 import { Dict } from './dict'
+import { Rule } from './rules'
 import { buildRuntime } from './runtime'
 import { buildMenuPatch, PATCH_START, PATCH_END } from './menu-patch'
 
@@ -80,13 +81,13 @@ function stripOldMainPatch(content: string): string {
   )
 }
 
-function writeRuntime(install: AppInstall, dict: Dict): void {
+function writeRuntime(install: AppInstall, dict: Dict, rules: Rule[]): void {
   const zhDir = path.join(install.appDir, 'zh')
   if (!fs.existsSync(zhDir)) {
     fs.mkdirSync(zhDir, { recursive: true })
   }
   const runtimePath = path.join(zhDir, 'runtime.js')
-  fs.writeFileSync(runtimePath, buildRuntime(dict), 'utf8')
+  fs.writeFileSync(runtimePath, buildRuntime(dict, rules), 'utf8')
 }
 
 function patchIndex(install: AppInstall): void {
@@ -110,7 +111,7 @@ function patchMain(install: AppInstall, dict: Dict): void {
   let content = fs.readFileSync(install.mainJs, 'utf8')
   content = stripOldMainPatch(content)
   const patch = buildMenuPatch(dict)
-  content = content.replace(/\s+$/, '') + '\n' + patch
+  content = patch + '\n' + content
   fs.writeFileSync(install.mainJs, content, 'utf8')
 }
 
@@ -122,7 +123,7 @@ export interface PatchResult {
   backupCreated: boolean
 }
 
-export function patch(install: AppInstall, dict: Dict): PatchResult {
+export function patch(install: AppInstall, dict: Dict, rules: Rule[]): PatchResult {
   const state = getState(install)
   if (state === 'broken') {
     throw new Error(
@@ -133,7 +134,7 @@ export function patch(install: AppInstall, dict: Dict): PatchResult {
   const hadBackup = fs.existsSync(backupPath(install.indexHtml))
   ensureBackup(install)
 
-  writeRuntime(install, dict)
+  writeRuntime(install, dict, rules)
   patchIndex(install)
   patchMain(install, dict)
 
