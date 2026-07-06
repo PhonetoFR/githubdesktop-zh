@@ -4,6 +4,7 @@ import { findInstalls, getNewestInstall, findInstallByVersion, AppInstall } from
 import { patch, restore, getStatus, PatchState, InstallStatus } from './patcher'
 import { menu, close } from './prompt'
 import * as log from './log'
+import pkg from '../package.json'
 
 const STATE_LABEL: Record<PatchState, string> = {
   none: '未汉化',
@@ -163,7 +164,6 @@ async function main(): Promise<void> {
     return
   }
   if (cmd === 'version') {
-    const pkg = require('../package.json')
     process.stdout.write(`github-desktop-zh v${pkg.version}\n`)
     return
   }

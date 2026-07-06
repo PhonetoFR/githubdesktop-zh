@@ -1,16 +1,14 @@
-import * as path from 'path'
-import * as fs from 'fs'
+import dictJson from '../dict/zh-CN.json'
 
 export type Dict = Record<string, string>
 
+let cached: Dict | null = null
+
 export function loadDict(): Dict {
-  const dictPath = path.resolve(__dirname, '..', 'dict', 'zh-CN.json')
-  if (!fs.existsSync(dictPath)) {
-    throw new Error(`翻译表不存在: ${dictPath}`)
-  }
-  const raw = fs.readFileSync(dictPath, 'utf8')
-  const dict = JSON.parse(raw) as Dict
+  if (cached) return cached
+  const dict = dictJson as Dict
   validateDict(dict)
+  cached = dict
   return dict
 }
 
