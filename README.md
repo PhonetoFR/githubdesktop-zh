@@ -69,6 +69,8 @@ npm run build
 npm run package   # 打包为单文件 patch.exe
 ```
 
+> **打包提示**:pkg 5.8.1 的 `pkg-fetch` 在新版 Node 上会因进度条断言失败。如遇 `ERR_ASSERTION: (!this.bar)`,改用 `CI=true npm run package`(关闭进度条即可,会在 `build/patch.exe` 生成约 38MB 的 Windows 可执行文件)。
+
 ## 命令行用法
 
 `patch.exe` 支持两种模式：**交互式菜单**（双击运行）和 **子命令**（脚本化）。
