@@ -32,9 +32,9 @@ export function getRules(): Rule[] {
       replacement: '$1 个已更改文件',
     },
     {
-      pattern: '^(\\d+) unstudied files?$',
+      pattern: '^(\\d+) unstaged files?$',
       flags: '',
-      replacement: '$1 个未查看文件',
+      replacement: '$1 个未暂存文件',
     },
     {
       pattern: '^Push (\\d+) commits?$',

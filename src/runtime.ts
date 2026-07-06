@@ -21,18 +21,25 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
 
   function translate(text) {
     if (!text) return text;
+    var leadMatch = text.match(/^\s*/);
+    var trailMatch = text.match(/\s*$/);
+    var lead = leadMatch ? leadMatch[0] : '';
+    var trail = trailMatch ? trailMatch[0] : '';
     var trimmed = text.trim();
     if (trimmed === '') return text;
     if (CJK.test(trimmed)) return text;
+    var result = null;
     if (Object.prototype.hasOwnProperty.call(DICT, trimmed)) {
-      return DICT[trimmed];
+      result = DICT[trimmed];
+    } else {
+      for (var i = 0; i < RULES.length; i++) {
+        var r = RULES[i];
+        var m = r.pattern.exec(trimmed);
+        if (m) { result = trimmed.replace(r.pattern, r.replacement); break; }
+      }
     }
-    for (var i = 0; i < RULES.length; i++) {
-      var r = RULES[i];
-      var m = r.pattern.exec(trimmed);
-      if (m) return trimmed.replace(r.pattern, r.replacement);
-    }
-    return text;
+    if (result === null) return text;
+    return lead + result + trail;
   }
 
   function translateTextNode(node) {
@@ -41,6 +48,16 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
     var translated = translate(original);
     if (translated !== original) {
       node.nodeValue = translated;
+      return;
+    }
+    var next = node.nextSibling;
+    if (next && next.nodeType === 3 && next.nodeValue) {
+      var combined = original + next.nodeValue;
+      var combinedTranslated = translate(combined);
+      if (combinedTranslated !== combined) {
+        node.nodeValue = combinedTranslated;
+        next.nodeValue = '';
+      }
     }
   }
 
@@ -66,6 +83,11 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
 
   function tryTranslateContainer(el) {
     if (isSkipTag(el)) return;
+    var hasElementChild = false;
+    for (var c = el.firstChild; c; c = c.nextSibling) {
+      if (c.nodeType === 1) { hasElementChild = true; break; }
+    }
+    if (hasElementChild) return;
     var txt = el.textContent;
     if (!txt) return;
     var trimmed = txt.trim();
@@ -100,19 +122,29 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
 
   var isApplying = false;
   var pending = null;
+  var nextPending = null;
   function schedule(node) {
-    if (isApplying) return;
-    if (pending) {
-      if (Array.isArray(node)) {
-        for (var i = 0; i < node.length; i++) pending.push(node[i]);
-      } else {
-        pending.push(node);
-      }
-      return;
+    var bucket = isApplying ? nextPending : pending;
+    if (!bucket) {
+      bucket = [];
+      if (isApplying) nextPending = bucket;
+      else pending = bucket;
     }
-    pending = Array.isArray(node) ? node.slice() : [node];
+    if (Array.isArray(node)) {
+      for (var i = 0; i < node.length; i++) bucket.push(node[i]);
+    } else {
+      bucket.push(node);
+    }
+    if (isApplying) return;
     Promise.resolve().then(function () {
-      if (!pending) return;
+      if (!pending) {
+        if (nextPending) {
+          pending = nextPending;
+          nextPending = null;
+        } else {
+          return;
+        }
+      }
       var nodes = pending;
       pending = null;
       isApplying = true;
@@ -122,6 +154,11 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
         }
       } finally {
         isApplying = false;
+        if (nextPending) {
+          var np = nextPending;
+          nextPending = null;
+          schedule(np);
+        }
       }
     });
   }

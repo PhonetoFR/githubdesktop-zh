@@ -1,7 +1,7 @@
 import { loadDict } from './dict'
 import { getRules } from './rules'
 import { findInstalls, getNewestInstall, findInstallByVersion, AppInstall } from './locator'
-import { patch, restore, getStatus, PatchState, InstallStatus } from './patcher'
+import { patch, restore, getStatus, isDesktopRunning, PatchState, InstallStatus } from './patcher'
 import { menu, close } from './prompt'
 import * as log from './log'
 import pkg from '../package.json'
@@ -45,6 +45,10 @@ function doPatch(installs: AppInstall[], versionFlag?: string): void {
     log.error(`v${target.version} 处于异常状态，无法汉化。建议重装 GitHub Desktop。`)
     return
   }
+  if (isDesktopRunning()) {
+    log.warn('检测到 GitHub Desktop 正在运行，请先关闭它再汉化，否则可能不生效。')
+    return
+  }
   log.info(`开始汉化 v${target.version} ...`)
   const result = patch(target, dict, rules)
   log.success(`汉化完成 v${result.version}`)
@@ -64,6 +68,10 @@ function doRestore(installs: AppInstall[], versionFlag?: string): void {
   }
   if (state === 'broken') {
     log.error(`v${target.version} 处于异常状态，无法还原。建议重装 GitHub Desktop。`)
+    return
+  }
+  if (isDesktopRunning()) {
+    log.warn('检测到 GitHub Desktop 正在运行，请先关闭它再还原。')
     return
   }
   log.info(`开始还原 v${target.version} ...`)
@@ -119,7 +127,7 @@ async function interactiveMenu(installs: AppInstall[]): Promise<void> {
     return
   }
 
-  const newestStatus = statuses.find(s => s.version === newest.version)!
+  const newestStatus = statuses[statuses.length - 1]
   const patchLabel = newestStatus.state === 'patched' ? '重新汉化' : '一键汉化'
   const restoreLabel = newestStatus.state === 'patched' ? '还原原版' : '还原原版(当前未汉化)'
 

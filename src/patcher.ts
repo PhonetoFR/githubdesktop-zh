@@ -123,6 +123,19 @@ export interface PatchResult {
   backupCreated: boolean
 }
 
+export function isDesktopRunning(): boolean {
+  try {
+    const { execSync } = require('child_process')
+    const out = execSync('tasklist /FI "IMAGENAME eq GitHubDesktop.exe" /NH /FO CSV', {
+      encoding: 'utf8',
+      windowsHide: true,
+    })
+    return /GitHubDesktop\.exe/i.test(out)
+  } catch {
+    return false
+  }
+}
+
 export function patch(install: AppInstall, dict: Dict, rules: Rule[]): PatchResult {
   const state = getState(install)
   if (state === 'broken') {
@@ -178,10 +191,18 @@ export function restore(install: AppInstall): boolean {
 
 function rmrf(target: string): void {
   if (!fs.existsSync(target)) return
+  try {
+    fs.rmSync(target, { recursive: true, force: true })
+  } catch {
+    fallbackRmrf(target)
+  }
+}
+
+function fallbackRmrf(target: string): void {
   const stat = fs.statSync(target)
   if (stat.isDirectory()) {
     for (const entry of fs.readdirSync(target)) {
-      rmrf(path.join(target, entry))
+      fallbackRmrf(path.join(target, entry))
     }
     fs.rmdirSync(target)
   } else {

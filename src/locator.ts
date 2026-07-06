@@ -1,5 +1,4 @@
 import * as path from 'path'
-import * as os from 'os'
 import * as fs from 'fs'
 
 export interface AppInstall {
@@ -90,5 +89,3 @@ export function compareVersion(a: string, b: string): number {
 export function backupPath(file: string): string {
   return file + '.bak'
 }
-
-export { path, os, fs }
