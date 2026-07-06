@@ -17,6 +17,7 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
   });
   var CJK = /[\\u4e00-\\u9fff]/;
   var ATTRS = ['aria-label', 'title', 'placeholder', 'alt'];
+  var SKIP_TAGS = ['SCRIPT','STYLE','SVG','CODE','PRE','TEXTAREA','INPUT','CANVAS','VIDEO','AUDIO','IFRAME','OBJECT','EMBED','NOSCRIPT'];
 
   function translate(text) {
     if (!text) return text;
@@ -54,8 +55,17 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
     }
   }
 
+  function isSkipTag(el) {
+    if (!el || el.nodeType !== 1) return true;
+    var tag = el.tagName;
+    for (var i = 0; i < SKIP_TAGS.length; i++) {
+      if (tag === SKIP_TAGS[i]) return true;
+    }
+    return false;
+  }
+
   function tryTranslateContainer(el) {
-    if (!el || el.nodeType !== 1) return;
+    if (isSkipTag(el)) return;
     var hasElementChild = false;
     for (var c = el.firstChild; c; c = c.nextSibling) {
       if (c.nodeType === 1) { hasElementChild = true; break; }
@@ -122,12 +132,12 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
   }
 
   function start() {
-    var container = document.getElementById('desktop-app-container');
-    if (!container) {
+    var target = document.body;
+    if (!target) {
       document.addEventListener('DOMContentLoaded', start, { once: true });
       return;
     }
-    walk(container);
+    walk(target);
     var mo = new MutationObserver(function (muts) {
       var added = [];
       for (var i = 0; i < muts.length; i++) {
@@ -138,7 +148,7 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
       }
       if (added.length > 0) schedule(added);
     });
-    mo.observe(container, { childList: true, subtree: true });
+    mo.observe(target, { childList: true, subtree: true });
   }
 
   start();
