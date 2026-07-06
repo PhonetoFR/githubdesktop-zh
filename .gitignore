@@ -1,0 +1,73 @@
+# GitHub Desktop 官方源码（仅本地参考，不提交）
+app/
+script/
+docs/
+eslint-rules/
+vendor/
+.vscode/
+.eslintrc.json
+.eslintrc.yml
+.eslintignore
+.eslint-plugin-local*
+.markdownlint.js
+.markdownlint.json
+.prettierrc.json
+.prettierignore
+.python-version
+.test.env
+.tool-versions
+.nvmrc
+.node-version
+.gitattributes
+.gitmodules
+.yarnrc
+.yarn/
+changelog.json
+CODE_OF_CONDUCT.md
+LICENSE
+SECURITY.md
+CONTRIBUTING.md
+issue_template.md
+SUPPORT.md
+.prettierrc.yml
+jest.config.js
+signale.config.js
+jest.e2e.config.js
+
+# 排除 GitHub Desktop 源码中的 .github 文件（仅保留 build.yml）
+.github/agents/
+.github/actions/
+.github/codeql/
+.github/skills/
+.github/config.yml
+.github/copilot-instructions.md
+.github/dependabot.yml
+.github/pull_request_template.md
+.github/release-notes-instructions.md
+.github/CODEOWNERS
+.github/ISSUE_TEMPLATE/
+.github/workflows/ci.yml
+.github/workflows/codeql.yml
+.github/workflows/draft-release.yml
+.github/workflows/release-pr.yml
+.github/workflows/triage-issues.yml
+.github/workflows/triage-prs.yml
+.github/workflows/triage-scheduled-tasks.yml
+
+# 构建产物
+out/
+dist/
+node_modules/
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# pkg 打包产物
+build/
