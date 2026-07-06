@@ -66,16 +66,11 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
 
   function tryTranslateContainer(el) {
     if (isSkipTag(el)) return;
-    var hasElementChild = false;
-    for (var c = el.firstChild; c; c = c.nextSibling) {
-      if (c.nodeType === 1) { hasElementChild = true; break; }
-    }
-    if (hasElementChild) return;
     var txt = el.textContent;
     if (!txt) return;
     var trimmed = txt.trim();
     if (trimmed === '' || CJK.test(trimmed)) return;
-    if (trimmed.length < 4) return;
+    if (trimmed.length < 4 || trimmed.length > 200) return;
     var translated = translate(trimmed);
     if (translated !== trimmed) {
       el.textContent = translated;
