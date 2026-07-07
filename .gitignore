@@ -71,6 +71,3 @@ Thumbs.db
 
 # pkg 打包产物
 build/
-
-# SEA 打包产物
-sea-prep.blob
