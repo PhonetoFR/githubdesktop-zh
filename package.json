@@ -10,16 +10,22 @@
     "build": "tsc",
     "start": "node dist/main.js",
     "dev": "ts-node src/main.ts",
-    "package": "pkg dist/main.js --targets node18-win-x64 --output build/patch-v$npm_package_version.exe",
+    "package": "pkg dist/main.js --targets node18-win-x64 --output build/patch-v$npm_package_version.exe && node scripts/inject-version.cjs build/patch-v$npm_package_version.exe",
     "lint": "eslint src/**/*.ts",
     "test": "npm run build && node --test test/*.test.cjs"
   },
-  "keywords": ["github-desktop", "chinese", "translation", "汉化"],
+  "keywords": [
+    "github-desktop",
+    "chinese",
+    "translation",
+    "汉化"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.0.0",
     "pkg": "^5.8.0",
+    "resedit": "^3.0.2",
     "typescript": "^5.3.0"
   },
   "pkg": {
