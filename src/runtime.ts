@@ -45,11 +45,6 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
   function translateTextNode(node) {
     var original = node.nodeValue;
     if (!original) return;
-    var translated = translate(original);
-    if (translated !== original) {
-      node.nodeValue = translated;
-      return;
-    }
     var next = node.nextSibling;
     if (next && next.nodeType === 3 && next.nodeValue) {
       var after = next.nextSibling;
@@ -68,7 +63,12 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
       if (combinedTranslated !== combined) {
         node.nodeValue = combinedTranslated;
         next.nodeValue = '';
+        return;
       }
+    }
+    var translated = translate(original);
+    if (translated !== original) {
+      node.nodeValue = translated;
     }
   }
 

@@ -27,6 +27,11 @@ export function getRules(): Rule[] {
       replacement: '提交到 $1',
     },
     {
+      pattern: '^(\\d+) changes?$',
+      flags: '',
+      replacement: '$1 个更改',
+    },
+    {
       pattern: '^(\\d+) changed files?$',
       flags: '',
       replacement: '$1 个已更改文件',

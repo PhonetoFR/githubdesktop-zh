@@ -942,5 +942,7 @@
   "Exit tutorial": "退出教程",
   "Are you sure you want to leave the tutorial? This will bring you back to the home screen.": "确定要离开教程吗？这将带你返回主屏幕。",
   "View all rulesets for this branch.": "查看此分支的所有规则集。",
-  "Failed": "失败"
+  "Failed": "失败",
+  "changes": "更改",
+  "change": "更改"
 }
