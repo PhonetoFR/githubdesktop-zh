@@ -196,5 +196,25 @@ export function getRules(): Rule[] {
       flags: '',
       replacement: '用你的本地更改覆盖 $1 上的所有更改',
     },
+    {
+      pattern: '^(\\d+) added lines?$',
+      flags: '',
+      replacement: '$1 行新增',
+    },
+    {
+      pattern: '^(\\d+) removed lines?$',
+      flags: '',
+      replacement: '$1 行移除',
+    },
+    {
+      pattern: '^Merge (\\d+) commits? into$',
+      flags: '',
+      replacement: '将 $1 个提交合并到',
+    },
+    {
+      pattern: '^Why are you bypassing this (.+)\\?$',
+      flags: '',
+      replacement: '为什么绕过 $1？',
+    },
   ]
 }

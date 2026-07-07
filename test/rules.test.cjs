@@ -66,6 +66,11 @@ const positives = [
   ['Fetch upstream', '获取 upstream'],
   ['Force push main', '强制推送 main'],
   ['Overwrite any changes on main with your local changes', '用你的本地更改覆盖 main 上的所有更改'],
+  ['5 added lines', '5 行新增'],
+  ['1 removed line', '1 行移除'],
+  ['Merge 3 commits into', '将 3 个提交合并到'],
+  ['Merge 1 commit into', '将 1 个提交合并到'],
+  ['Why are you bypassing this GitHub Token?', '为什么绕过 GitHub Token？'],
 ]
 
 test('规则正确翻译已知动态字符串', () => {
