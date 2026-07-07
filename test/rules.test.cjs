@@ -62,6 +62,10 @@ const positives = [
   ['Leave my changes on feature-x', '把我的更改留在 feature-x'],
   ['Bring my changes to dev', '把我的更改带到 dev'],
   ['Version 3.4.0', '版本 3.4.0'],
+  ['Fetch the latest changes from upstream', '从 upstream 获取最新更改'],
+  ['Fetch upstream', '获取 upstream'],
+  ['Force push main', '强制推送 main'],
+  ['Overwrite any changes on main with your local changes', '用你的本地更改覆盖 main 上的所有更改'],
 ]
 
 test('规则正确翻译已知动态字符串', () => {

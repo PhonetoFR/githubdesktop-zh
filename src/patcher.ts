@@ -186,11 +186,9 @@ export function restore(install: AppInstall): boolean {
   const mainBak = backupPath(install.mainJs)
   if (fs.existsSync(idxBak)) {
     fs.copyFileSync(idxBak, install.indexHtml)
-    fs.unlinkSync(idxBak)
   }
   if (fs.existsSync(mainBak)) {
     fs.copyFileSync(mainBak, install.mainJs)
-    fs.unlinkSync(mainBak)
   }
 
   const zhDir = path.join(install.appDir, 'zh')

@@ -176,5 +176,25 @@ export function getRules(): Rule[] {
       flags: '',
       replacement: '版本 $1',
     },
+    {
+      pattern: '^Fetch the latest changes from (.+)$',
+      flags: '',
+      replacement: '从 $1 获取最新更改',
+    },
+    {
+      pattern: '^Fetch (.+)$',
+      flags: '',
+      replacement: '获取 $1',
+    },
+    {
+      pattern: '^Force push (.+)$',
+      flags: '',
+      replacement: '强制推送 $1',
+    },
+    {
+      pattern: '^Overwrite any changes on (.+) with your local changes$',
+      flags: '',
+      replacement: '用你的本地更改覆盖 $1 上的所有更改',
+    },
   ]
 }
