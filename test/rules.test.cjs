@@ -55,6 +55,9 @@ const positives = [
   ['Pull 1 commit', '拉取 1 个提交'],
   ['Open in VS Code', '在 VS Code 中打开'],
   ['Update from upstream', '从 upstream 更新'],
+  ['2 suggestions', '2 条建议'],
+  ['5 checks failed in your pull request', '你的拉取请求中有 5 个检查失败'],
+  ['1 check failed in your pull request', '你的拉取请求中有 1 个检查失败'],
 ]
 
 test('规则正确翻译已知动态字符串', () => {

@@ -146,5 +146,15 @@ export function getRules(): Rule[] {
       flags: '',
       replacement: '上次获取于 $1',
     },
+    {
+      pattern: '^(\\d+) suggestions?$',
+      flags: '',
+      replacement: '$1 条建议',
+    },
+    {
+      pattern: '^(\\d+) checks? failed in your pull request$',
+      flags: '',
+      replacement: '你的拉取请求中有 $1 个检查失败',
+    },
   ]
 }
