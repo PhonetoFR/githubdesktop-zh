@@ -52,6 +52,17 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
     }
     var next = node.nextSibling;
     if (next && next.nodeType === 3 && next.nodeValue) {
+      var after = next.nextSibling;
+      if (after && after.nodeType === 3 && after.nodeValue) {
+        var triple = original + next.nodeValue + after.nodeValue;
+        var tripleTranslated = translate(triple);
+        if (tripleTranslated !== triple) {
+          node.nodeValue = tripleTranslated;
+          next.nodeValue = '';
+          after.nodeValue = '';
+          return;
+        }
+      }
       var combined = original + next.nodeValue;
       var combinedTranslated = translate(combined);
       if (combinedTranslated !== combined) {
