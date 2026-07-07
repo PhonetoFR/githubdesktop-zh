@@ -181,17 +181,27 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
       return;
     }
     walk(target);
+    setTimeout(function () { walk(target); }, 500);
+    var charDataBatch = 0;
     var mo = new MutationObserver(function (muts) {
       var added = [];
+      charDataBatch++;
       for (var i = 0; i < muts.length; i++) {
         var m = muts[i];
         for (var j = 0; j < m.addedNodes.length; j++) {
           added.push(m.addedNodes[j]);
         }
+        if (m.type === 'characterData') {
+          var p = m.target.parentNode;
+          if (p && p.__zhBatch !== charDataBatch) {
+            p.__zhBatch = charDataBatch;
+            added.push(p);
+          }
+        }
       }
       if (added.length > 0) schedule(added);
     });
-    mo.observe(target, { childList: true, subtree: true });
+    mo.observe(target, { childList: true, subtree: true, characterData: true });
   }
 
   start();
