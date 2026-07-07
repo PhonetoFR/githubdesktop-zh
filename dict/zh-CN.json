@@ -925,5 +925,22 @@
   "Bypass": "绕过",
   "Bypassed": "已绕过",
   "Secrets": "机密",
-  "Undo Commit": "撤销提交"
+  "Undo Commit": "撤销提交",
+  "Keep this code private": "将此代码保持私有",
+  "Organization": "组织",
+  "GitHub.com": "GitHub.com",
+  "Publish Repository": "发布仓库",
+  "Re-authorization Required": "需要重新授权",
+  "Re-authorization required": "需要重新授权",
+  "Would you like to open a browser to grant GitHub Desktop permission to access the repository?": "你想打开浏览器授予 GitHub Desktop 访问此仓库的权限吗？",
+  "Installing Update…": "正在安装更新…",
+  "Installing update…": "正在安装更新…",
+  "Do not close GitHub Desktop while the update is in progress. Closing now may break your installation.": "更新进行中时请勿关闭 GitHub Desktop。立即关闭可能会破坏你的安装。",
+  "Quit Anyway": "强行退出",
+  "Quit anyway": "强行退出",
+  "Exit Tutorial": "退出教程",
+  "Exit tutorial": "退出教程",
+  "Are you sure you want to leave the tutorial? This will bring you back to the home screen.": "确定要离开教程吗？这将带你返回主屏幕。",
+  "View all rulesets for this branch.": "查看此分支的所有规则集。",
+  "Failed": "失败"
 }
