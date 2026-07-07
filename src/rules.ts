@@ -156,5 +156,25 @@ export function getRules(): Rule[] {
       flags: '',
       replacement: '你的拉取请求中有 $1 个检查失败',
     },
+    {
+      pattern: '^Rename (.+)$',
+      flags: '',
+      replacement: '重命名 $1',
+    },
+    {
+      pattern: '^Leave my changes on (.+)$',
+      flags: '',
+      replacement: '把我的更改留在 $1',
+    },
+    {
+      pattern: '^Bring my changes to (.+)$',
+      flags: '',
+      replacement: '把我的更改带到 $1',
+    },
+    {
+      pattern: '^Version (.+)$',
+      flags: '',
+      replacement: '版本 $1',
+    },
   ]
 }

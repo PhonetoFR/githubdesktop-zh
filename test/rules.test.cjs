@@ -58,6 +58,10 @@ const positives = [
   ['2 suggestions', '2 条建议'],
   ['5 checks failed in your pull request', '你的拉取请求中有 5 个检查失败'],
   ['1 check failed in your pull request', '你的拉取请求中有 1 个检查失败'],
+  ['Rename main', '重命名 main'],
+  ['Leave my changes on feature-x', '把我的更改留在 feature-x'],
+  ['Bring my changes to dev', '把我的更改带到 dev'],
+  ['Version 3.4.0', '版本 3.4.0'],
 ]
 
 test('规则正确翻译已知动态字符串', () => {
