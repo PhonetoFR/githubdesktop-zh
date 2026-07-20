@@ -21,8 +21,8 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
 
   function translate(text) {
     if (!text) return text;
-    var leadMatch = text.match(/^\s*/);
-    var trailMatch = text.match(/\s*$/);
+    var leadMatch = text.match(/^\\s*/);
+    var trailMatch = text.match(/\\s*$/);
     var lead = leadMatch ? leadMatch[0] : '';
     var trail = trailMatch ? trailMatch[0] : '';
     var trimmed = text.trim();
@@ -188,8 +188,14 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
       charDataBatch++;
       for (var i = 0; i < muts.length; i++) {
         var m = muts[i];
-        for (var j = 0; j < m.addedNodes.length; j++) {
-          added.push(m.addedNodes[j]);
+        if (m.type === 'characterData') {
+          if (m.target && m.target.nodeType === 3) {
+            added.push(m.target);
+          }
+        } else {
+          for (var j = 0; j < m.addedNodes.length; j++) {
+            added.push(m.addedNodes[j]);
+          }
         }
         if (m.type === 'characterData') {
           var p = m.target.parentNode;
