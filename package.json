@@ -1,6 +1,6 @@
 {
   "name": "github-desktop-zh",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "GitHub Desktop 汉化补丁工具 - 一键汉化，支持还原",
   "main": "src/main.ts",
   "bin": {
