@@ -1,7 +1,7 @@
 import { loadDict } from './dict'
 import { getRules } from './rules'
 import { findInstalls, getNewestInstall, findInstallByVersion, AppInstall } from './locator'
-import { patch, restore, getStatus, isDesktopRunning, PatchState, InstallStatus } from './patcher'
+import { patch, restore, getStatus, getDesktopProcessState, PatchState, InstallStatus } from './patcher'
 import { menu, close } from './prompt'
 import * as log from './log'
 import pkg from '../package.json'
@@ -10,12 +10,13 @@ const STATE_LABEL: Record<PatchState, string> = {
   none: '未汉化',
   patched: '已汉化',
   restored: '已还原(备份保留)',
-  broken: '异常(无备份,建议重装)',
+  broken: '异常(补丁或备份不完整)',
 }
 
-function printStatus(installs: AppInstall[]): InstallStatus[] {
-  const statuses = installs.map(getStatus)
-  log.info(`检测到 ${installs.length} 个 GitHub Desktop 安装:`)
+function printStatus(installs: AppInstall[], versionFlag?: string): InstallStatus[] {
+  const targets = versionFlag ? [selectTarget(installs, versionFlag)] : installs
+  const statuses = targets.map(getStatus)
+  log.info(`检测到 ${targets.length} 个 GitHub Desktop 安装:`)
   for (const s of statuses) {
     const flag = s.state === 'patched' ? '[汉]' : s.state === 'broken' ? '[!]' : '   '
     process.stdout.write(`  ${flag} v${s.version}  ${STATE_LABEL[s.state]}\n`)
@@ -36,19 +37,29 @@ function selectTarget(installs: AppInstall[], versionFlag?: string): AppInstall 
   return newest
 }
 
-function doPatch(installs: AppInstall[], versionFlag?: string): void {
+function ensureDesktopStopped(): boolean {
+  const state = getDesktopProcessState()
+  if (state === 'running') {
+    log.warn('检测到 GitHub Desktop 正在运行，请先关闭它再操作，否则可能不生效。')
+    return false
+  }
+  if (state === 'unknown') {
+    log.error('无法确认 GitHub Desktop 是否已关闭，为避免损坏文件，已取消操作。')
+    return false
+  }
+  return true
+}
+
+function doPatch(installs: AppInstall[], versionFlag?: string): boolean {
   const dict = loadDict()
   const rules = getRules()
   const target = selectTarget(installs, versionFlag)
   const state = getStatus(target).state
   if (state === 'broken') {
-    log.error(`v${target.version} 处于异常状态，无法汉化。建议重装 GitHub Desktop。`)
-    return
+    log.error(`v${target.version} 处于异常状态，无法汉化。请先还原；如无完整备份，请重装 GitHub Desktop。`)
+    return false
   }
-  if (isDesktopRunning()) {
-    log.warn('检测到 GitHub Desktop 正在运行，请先关闭它再汉化，否则可能不生效。')
-    return
-  }
+  if (!ensureDesktopStopped()) return false
   log.info(`开始汉化 v${target.version} ...`)
   const result = patch(target, dict, rules)
   log.success(`汉化完成 v${result.version}`)
@@ -57,27 +68,30 @@ function doPatch(installs: AppInstall[], versionFlag?: string): void {
   process.stdout.write(`  运行时写入: ${result.runtimeWritten ? '成功' : '跳过'}\n`)
   process.stdout.write(`  备份创建: ${result.backupCreated ? '是' : '已存在'}\n`)
   log.info('请重新打开 GitHub Desktop 以查看效果。')
+  return true
 }
 
-function doRestore(installs: AppInstall[], versionFlag?: string): void {
+function doRestore(installs: AppInstall[], versionFlag?: string): boolean {
   const target = selectTarget(installs, versionFlag)
-  const state = getStatus(target).state
+  const status = getStatus(target)
+  const state = status.state
   if (state === 'none') {
     log.warn(`v${target.version} 未汉化，无需还原。`)
-    return
+    return false
+  }
+  if (state === 'broken' && !status.hasBackup) {
+    log.error(`v${target.version} 缺少完整备份，无法还原。建议重装 GitHub Desktop。`)
+    return false
   }
   if (state === 'broken') {
-    log.error(`v${target.version} 处于异常状态，无法还原。建议重装 GitHub Desktop。`)
-    return
+    log.warn(`v${target.version} 处于异常状态，将从完整备份还原。`)
   }
-  if (isDesktopRunning()) {
-    log.warn('检测到 GitHub Desktop 正在运行，请先关闭它再还原。')
-    return
-  }
+  if (!ensureDesktopStopped()) return false
   log.info(`开始还原 v${target.version} ...`)
   restore(target)
   log.success(`还原完成 v${target.version}`)
   log.info('请重新打开 GitHub Desktop 以确认已恢复英文。')
+  return true
 }
 
 function printHelp(): void {
@@ -185,13 +199,13 @@ async function main(): Promise<void> {
 
     switch (cmd) {
       case 'patch':
-        doPatch(installs, target)
+        if (!doPatch(installs, target)) process.exitCode = 1
         break
       case 'restore':
-        doRestore(installs, target)
+        if (!doRestore(installs, target)) process.exitCode = 1
         break
       case 'status':
-        printStatus(installs)
+        printStatus(installs, target)
         break
       case 'menu':
         await interactiveMenu(installs)

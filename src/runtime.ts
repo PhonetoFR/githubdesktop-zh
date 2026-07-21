@@ -1,14 +1,14 @@
 import { Dict } from './dict'
 import { Rule } from './rules'
 
-const HEADER = `/* GitHub Desktop 汉化运行时 - 由 github-desktop-zh 自动生成，请勿手动编辑 */`
+export const RUNTIME_HEADER = `/* GitHub Desktop 汉化运行时 - 由 github-desktop-zh 自动生成，请勿手动编辑 */`
 
 export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
   const dictJson = JSON.stringify(dict)
   const rulesJson = JSON.stringify(
     rules.map(r => ({ pattern: r.pattern, flags: r.flags, replacement: r.replacement }))
   )
-  return `${HEADER}
+  return `${RUNTIME_HEADER}
 (() => {
   'use strict';
   var DICT = ${dictJson};
