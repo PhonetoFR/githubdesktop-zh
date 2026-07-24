@@ -266,6 +266,11 @@ h2 {
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+  transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.icon-button.spinning svg {
+  animation: spin 0.8s linear infinite;
 }
 
 .field {
@@ -542,6 +547,10 @@ select:disabled {
 @keyframes pulse-dot {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.35); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .shell {

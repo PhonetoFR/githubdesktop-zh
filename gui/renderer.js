@@ -168,6 +168,7 @@ function ipcInvoke(method, ...args) {
 async function refreshState(options = {}) {
   view.busy = true
   view.activity = 'refresh'
+  elements.refreshButton.classList.add('spinning')
   render()
   if (!options.keepNotice) {setNotice('')}
 
@@ -177,6 +178,7 @@ async function refreshState(options = {}) {
   } catch (error) {
     view.busy = false
     view.activity = null
+    elements.refreshButton.classList.remove('spinning')
     view.snapshot = null
     render()
     setNotice(error instanceof Error ? error.message : '读取应用状态失败。', 'error')
@@ -184,6 +186,7 @@ async function refreshState(options = {}) {
   }
   view.busy = false
   view.activity = null
+  elements.refreshButton.classList.remove('spinning')
   if (!response.ok || !response.data) {
     view.snapshot = null
     render()
