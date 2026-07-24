@@ -82,10 +82,10 @@ function registerIpc(): void {
 
 function createWindow(): void {
   const window = new BrowserWindow({
-    width: 820,
+    width: 980,
     height: 650,
-    minWidth: 720,
-    minHeight: 580,
+    minWidth: 820,
+    minHeight: 600,
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#f3f6fa',

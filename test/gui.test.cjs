@@ -50,4 +50,6 @@ test('GUI 支持文字重排、减少动画和高对比度模式', () => {
   assert.match(css, /prefers-reduced-motion:\s*reduce/)
   assert.match(css, /forced-colors:\s*active/)
   assert.match(css, /app-region:\s*drag/)
+  assert.match(css, /grid-template-columns:\s*minmax\(230px/)
+  assert.match(css, /body::-webkit-scrollbar/)
 })

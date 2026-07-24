@@ -11,7 +11,7 @@ Windows 图形化 GitHub Desktop 简体中文补丁工具。默认发行形式�
 - 仓库:`https://github.com/PhonetoFR/githubdesktop-zh`
 - 默认分支:`master`
 - 许可:MIT
-- 当前版本:`1.1.0-beta.2`(GUI portable beta)
+- 当前版本:`1.1.0-beta.3`(GUI portable beta)
 
 ## 2. 当前状态(2026-07-24 截止)
 
@@ -20,8 +20,8 @@ Windows 图形化 GitHub Desktop 简体中文补丁工具。默认发行形式�
 | 字典条目 `dict/zh-CN.json` | 1307 |
 | 动态规则 `src/rules.ts` | 43 |
 | 单元测试 `test/*.test.cjs` | 33(全过) |
-| 版本 | 1.1.0-beta.2 |
-| 默认产物 | `github-desktop-zh-1.1.0-beta.2-portable.exe`(约 89.6MB) |
+| 版本 | 1.1.0-beta.3 |
+| 默认产物 | `github-desktop-zh-1.1.0-beta.3-portable.exe`(约 89.6MB) |
 | 远端 origin | `https://github.com/PhonetoFR/githubdesktop-zh.git` |
 
 GUI 已在 Windows 上完成 portable 启动、状态读取、汉化和还原闭环实测。测试目标为 GitHub Desktop 3.6.3,还原后源文件与 `.bak` 一致且 `zh/runtime.js` 已删除。
