@@ -61,8 +61,8 @@ test('lint 脚本与配置已就绪', () => {
   assert.match(packageJson.scripts.lint, /eslint/)
 })
 
-test('构建流程包含代码签名证书生成步骤', () => {
+test('构建流程不含默认签名', () => {
   assert.ok(fs.existsSync(path.join(root, 'scripts', 'generate-cert.cjs')))
-  assert.match(packageJson.scripts['package:gui'], /generate:cert/)
+  assert.doesNotMatch(packageJson.scripts['package:gui'], /generate:cert/)
   assert.match(packageJson.scripts['package:gui'], /package-gui\.cjs/)
 })

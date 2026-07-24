@@ -16,7 +16,7 @@
     "generate:icon": "node scripts/generate-icon.cjs",
     "generate:cert": "node scripts/generate-cert.cjs",
     "package": "npm run package:gui",
-    "package:gui": "npm run build && npm run generate:icon && npm run generate:cert && npm run clean:package && node scripts/package-gui.cjs",
+    "package:gui": "npm run build && npm run generate:icon && npm run clean:package && node scripts/package-gui.cjs",
     "package:cli": "npm run build && npm run clean:package && pkg dist/main.js --targets node18-win-x64 --output build/patch-cli.exe",
     "lint": "eslint src/**/*.ts",
     "test": "npm run build && node --test test/*.test.cjs"
