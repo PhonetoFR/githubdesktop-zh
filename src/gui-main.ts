@@ -29,7 +29,7 @@ function isTrustedSender(event: IpcMainInvokeEvent): boolean {
 
 function registerIpc(): void {
   ipcMain.handle('app:get-state', (event): GuiResponse<GuiState> => {
-    if (!isTrustedSender(event)) return { ok: false, error: '已拒绝非界面来源的请求。' }
+    if (!isTrustedSender(event)) {return { ok: false, error: '已拒绝非界面来源的请求。' }}
     try {
       return { ok: true, data: getGuiState() }
     } catch (error) {
@@ -43,12 +43,12 @@ function registerIpc(): void {
       if (!isTrustedSender(event)) {
         return { ok: false, error: '已拒绝非界面来源的请求。' }
       }
-      if (operationRunning) {
-        return { ok: false, error: '已有操作正在进行，请稍候。' }
-      }
       if ((action !== 'patch' && action !== 'restore') ||
         typeof version !== 'string' || version.length === 0) {
         return { ok: false, error: '无效的操作请求。' }
+      }
+      if (operationRunning) {
+        return { ok: false, error: '已有操作正在进行，请稍候。' }
       }
 
       operationRunning = true
@@ -75,7 +75,7 @@ function registerIpc(): void {
   )
 
   ipcMain.handle('app:open-repository', async (event): Promise<void> => {
-    if (!isTrustedSender(event)) throw new Error('已拒绝非界面来源的请求。')
+    if (!isTrustedSender(event)) {throw new Error('已拒绝非界面来源的请求。')}
     await shell.openExternal(REPOSITORY_URL)
   })
 }
@@ -110,7 +110,7 @@ function createWindow(): void {
   window.webContents.on('will-navigate', event => event.preventDefault())
   window.once('ready-to-show', () => window.show())
   window.on('closed', () => {
-    if (mainWindow === window) mainWindow = null
+    if (mainWindow === window) {mainWindow = null}
   })
   void window.loadFile(path.join(__dirname, '..', 'gui', 'index.html'))
   mainWindow = window
@@ -120,8 +120,8 @@ if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
   app.on('second-instance', () => {
-    if (!mainWindow) return
-    if (mainWindow.isMinimized()) mainWindow.restore()
+    if (!mainWindow) {return}
+    if (mainWindow.isMinimized()) {mainWindow.restore()}
     mainWindow.focus()
   })
 
@@ -129,11 +129,11 @@ if (!app.requestSingleInstanceLock()) {
     registerIpc()
     createWindow()
     app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) createWindow()
+      if (BrowserWindow.getAllWindows().length === 0) {createWindow()}
     })
   })
 
   app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit()
+    if (process.platform !== 'darwin') {app.quit()}
   })
 }

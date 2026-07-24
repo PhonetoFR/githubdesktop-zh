@@ -84,12 +84,12 @@ function parseArgs(argv: string[]): {
   let cmd: 'patch' | 'restore' | 'status' | 'help' | 'version' | 'menu' = 'menu'
   let target: string | undefined
   for (const arg of argv.slice(2)) {
-    if (arg === '--patch') cmd = 'patch'
-    else if (arg === '--restore') cmd = 'restore'
-    else if (arg === '--status') cmd = 'status'
-    else if (arg === '--help' || arg === '-h') cmd = 'help'
-    else if (arg === '--version' || arg === '-v') cmd = 'version'
-    else if (arg.startsWith('--target=')) target = arg.slice('--target='.length)
+    if (arg === '--patch') {cmd = 'patch'}
+    else if (arg === '--restore') {cmd = 'restore'}
+    else if (arg === '--status') {cmd = 'status'}
+    else if (arg === '--help' || arg === '-h') {cmd = 'help'}
+    else if (arg === '--version' || arg === '-v') {cmd = 'version'}
+    else if (arg.startsWith('--target=')) {target = arg.slice('--target='.length)}
   }
   return { cmd, target }
 }
@@ -160,10 +160,10 @@ async function main(): Promise<void> {
 
     switch (cmd) {
       case 'patch':
-        if (!doPatch(installs, target)) process.exitCode = 1
+        if (!doPatch(installs, target)) {process.exitCode = 1}
         break
       case 'restore':
-        if (!doRestore(installs, target)) process.exitCode = 1
+        if (!doRestore(installs, target)) {process.exitCode = 1}
         break
       case 'status':
         printStatus(installs, target)

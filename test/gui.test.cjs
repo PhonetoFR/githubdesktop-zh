@@ -53,3 +53,16 @@ test('GUI 支持文字重排、减少动画和高对比度模式', () => {
   assert.match(css, /grid-template-columns:\s*minmax\(230px/)
   assert.match(css, /body::-webkit-scrollbar/)
 })
+
+test('lint 脚本与配置已就绪', () => {
+  assert.ok(fs.existsSync(path.join(root, '.eslintrc.cjs')))
+  assert.ok(packageJson.devDependencies.eslint)
+  assert.ok(packageJson.devDependencies['@typescript-eslint/eslint-plugin'])
+  assert.match(packageJson.scripts.lint, /eslint/)
+})
+
+test('构建流程包含代码签名证书生成步骤', () => {
+  assert.ok(fs.existsSync(path.join(root, 'scripts', 'generate-cert.cjs')))
+  assert.match(packageJson.scripts['package:gui'], /generate:cert/)
+  assert.match(packageJson.scripts['package:gui'], /package-gui\.cjs/)
+})

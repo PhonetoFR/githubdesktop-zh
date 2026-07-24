@@ -32,9 +32,9 @@ export function findInstalls(root?: string): LocateResult {
   const installs: AppInstall[] = []
   const entries = fs.readdirSync(desktopRoot, { withFileTypes: true })
   for (const entry of entries) {
-    if (!entry.isDirectory()) continue
+    if (!entry.isDirectory()) {continue}
     const match = /^app-(.+)$/.exec(entry.name)
-    if (!match) continue
+    if (!match) {continue}
     const version = match[1]
     const appDir = path.join(desktopRoot, entry.name, 'resources', 'app')
     const indexHtml = path.join(appDir, 'index.html')
@@ -51,7 +51,7 @@ export function findInstalls(root?: string): LocateResult {
 }
 
 export function getNewestInstall(installs: AppInstall[]): AppInstall | null {
-  if (installs.length === 0) return null
+  if (installs.length === 0) {return null}
   return installs[installs.length - 1]
 }
 
@@ -76,9 +76,9 @@ export function compareVersion(a: string, b: string): number {
     const va = pa[i] ?? 0
     const vb = pb[i] ?? 0
     if (typeof va === 'number' && typeof vb === 'number') {
-      if (va !== vb) return va - vb
+      if (va !== vb) {return va - vb}
     } else if (typeof va === 'string' && typeof vb === 'string') {
-      if (va !== vb) return va < vb ? -1 : 1
+      if (va !== vb) {return va < vb ? -1 : 1}
     } else {
       return typeof va === 'number' ? 1 : -1
     }

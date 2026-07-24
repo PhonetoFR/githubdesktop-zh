@@ -24,7 +24,7 @@ export async function menu(title: string, options: MenuOption[]): Promise<number
   })
   while (true) {
     const raw = await question('\n请输入序号: ')
-    if (raw === '') continue
+    if (raw === '') {continue}
     const n = Number.parseInt(raw, 10)
     if (Number.isFinite(n) && n >= 1 && n <= options.length) {
       return n - 1

@@ -60,7 +60,7 @@ function countOccurrences(content: string, marker: string): number {
   let offset = 0
   while (true) {
     const index = content.indexOf(marker, offset)
-    if (index < 0) return count
+    if (index < 0) {return count}
     count++
     offset = index + marker.length
   }
@@ -116,15 +116,15 @@ function sourcesMatchBackups(install: AppInstall): boolean {
 }
 
 export function getState(install: AppInstall): PatchState {
-  if (hasPartialBackup(install)) return 'broken'
+  if (hasPartialBackup(install)) {return 'broken'}
 
   const hasBackup = hasCompleteBackup(install)
   const parts = getPatchParts(install)
   const isPatched = parts.index && parts.mainComplete && parts.runtime
 
-  if (isPatched) return hasBackup ? 'patched' : 'broken'
-  if (hasAnyPatchPart(parts)) return 'broken'
-  if (hasBackup) return sourcesMatchBackups(install) ? 'restored' : 'broken'
+  if (isPatched) {return hasBackup ? 'patched' : 'broken'}
+  if (hasAnyPatchPart(parts)) {return 'broken'}
+  if (hasBackup) {return sourcesMatchBackups(install) ? 'restored' : 'broken'}
   return 'none'
 }
 
@@ -146,7 +146,7 @@ function ensureBackup(install: AppInstall): boolean {
   if (hasIndexBackup !== hasMainBackup) {
     throw new Error('备份不完整，无法继续。请先使用完整备份还原，或重装 GitHub Desktop。')
   }
-  if (hasIndexBackup) return false
+  if (hasIndexBackup) {return false}
 
   let indexBackupCreated = false
   try {
@@ -235,7 +235,7 @@ function writePatchFiles(
   let mainAttempted = false
 
   try {
-    if (!dirExisted) fs.mkdirSync(dir, { recursive: true })
+    if (!dirExisted) {fs.mkdirSync(dir, { recursive: true })}
     runtimeAttempted = true
     fs.writeFileSync(file, runtime, 'utf8')
     indexAttempted = true
@@ -269,7 +269,7 @@ function writePatchFiles(
         rollbackErrors.push(errorMessage(rollbackError))
       }
     }
-    if (!dirExisted) removeEmptyRuntimeDir(install)
+    if (!dirExisted) {removeEmptyRuntimeDir(install)}
 
     const rollbackNote = rollbackErrors.length === 0
       ? '已回滚修改'
@@ -295,14 +295,21 @@ function restoreFiles(install: AppInstall): void {
 
   try {
     if (ownedRuntime) {
-      fs.unlinkSync(file)
-      runtimeRemoved = true
+      try {
+        fs.unlinkSync(file)
+        runtimeRemoved = true
+      } catch (unlinkError) {
+        if ((unlinkError as NodeJS.ErrnoException).code !== 'ENOENT') {
+          throw unlinkError
+        }
+        runtimeRemoved = true
+      }
     }
     indexAttempted = true
     fs.writeFileSync(install.indexHtml, restoredIndex, 'utf8')
     mainAttempted = true
     fs.writeFileSync(install.mainJs, restoredMain, 'utf8')
-    if (runtimeRemoved) removeEmptyRuntimeDir(install)
+    if (runtimeRemoved) {removeEmptyRuntimeDir(install)}
   } catch (error) {
     const rollbackErrors: string[] = []
     if (mainAttempted) {

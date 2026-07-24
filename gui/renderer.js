@@ -53,6 +53,7 @@ function setNotice(message, tone = 'info') {
 function renderProcessState() {
   const state = view.snapshot ? view.snapshot.processState : null
   elements.processIndicator.className = 'state-indicator'
+  elements.processIndicator.classList.remove('ready', 'blocked', 'error')
 
   if (view.activity === 'refresh') {
     elements.processTitle.textContent = '正在检测 GitHub Desktop'
@@ -157,15 +158,22 @@ function render() {
   renderInstallDetails()
 }
 
+function ipcInvoke(method, ...args) {
+  return Promise.race([
+    method(...args),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('操作超时，请重试。')), 30000)),
+  ])
+}
+
 async function refreshState(options = {}) {
   view.busy = true
   view.activity = 'refresh'
   render()
-  if (!options.keepNotice) setNotice('')
+  if (!options.keepNotice) {setNotice('')}
 
   let response
   try {
-    response = await window.zhPatch.getState()
+    response = await ipcInvoke(window.zhPatch.getState)
   } catch (error) {
     view.busy = false
     view.activity = null
@@ -189,7 +197,7 @@ async function refreshState(options = {}) {
 
 async function runAction(action) {
   const install = selectedInstall()
-  if (!install || view.busy) return
+  if (!install || view.busy) {return}
 
   view.busy = true
   view.activity = action
@@ -198,12 +206,12 @@ async function runAction(action) {
 
   let response
   try {
-    response = await window.zhPatch.runAction(action, install.version)
+    response = await ipcInvoke(window.zhPatch.runAction, action, install.version)
   } catch (error) {
     view.busy = false
     view.activity = null
-    render()
     setNotice(error instanceof Error ? error.message : '操作失败。', 'error')
+    await refreshState({ keepNotice: true })
     return
   }
   view.busy = false
