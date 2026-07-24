@@ -51,6 +51,8 @@
     "productName": "GitHub Desktop 汉化补丁",
     "asar": true,
     "compression": "normal",
+    "electronLanguages": ["en-US", "zh-CN"],
+    "afterPack": "./scripts/after-pack.cjs",
     "directories": {
       "output": "build",
       "buildResources": "build-resources"
