@@ -1,7 +1,6 @@
-import { loadDict } from './dict'
-import { getRules } from './rules'
-import { findInstalls, getNewestInstall, findInstallByVersion, AppInstall } from './locator'
-import { patch, restore, getStatus, getDesktopProcessState, PatchState, InstallStatus } from './patcher'
+import { applyPatch, getInstallStatuses, restoreOriginal, selectTarget } from './application'
+import { findInstalls, getNewestInstall, AppInstall } from './locator'
+import { PatchState, InstallStatus } from './patcher'
 import { menu, close } from './prompt'
 import * as log from './log'
 import pkg from '../package.json'
@@ -15,7 +14,7 @@ const STATE_LABEL: Record<PatchState, string> = {
 
 function printStatus(installs: AppInstall[], versionFlag?: string): InstallStatus[] {
   const targets = versionFlag ? [selectTarget(installs, versionFlag)] : installs
-  const statuses = targets.map(getStatus)
+  const statuses = getInstallStatuses(targets)
   log.info(`检测到 ${targets.length} 个 GitHub Desktop 安装:`)
   for (const s of statuses) {
     const flag = s.state === 'patched' ? '[汉]' : s.state === 'broken' ? '[!]' : '   '
@@ -24,74 +23,36 @@ function printStatus(installs: AppInstall[], versionFlag?: string): InstallStatu
   return statuses
 }
 
-function selectTarget(installs: AppInstall[], versionFlag?: string): AppInstall {
-  if (versionFlag) {
-    const inst = findInstallByVersion(installs, versionFlag)
-    if (!inst) {
-      throw new Error(`未找到指定版本 ${versionFlag}，可用版本: ${installs.map(i => i.version).join(', ')}`)
-    }
-    return inst
-  }
-  const newest = getNewestInstall(installs)
-  if (!newest) throw new Error('未找到任何 GitHub Desktop 安装')
-  return newest
-}
-
-function ensureDesktopStopped(): boolean {
-  const state = getDesktopProcessState()
-  if (state === 'running') {
-    log.warn('检测到 GitHub Desktop 正在运行，请先关闭它再操作，否则可能不生效。')
-    return false
-  }
-  if (state === 'unknown') {
-    log.error('无法确认 GitHub Desktop 是否已关闭，为避免损坏文件，已取消操作。')
-    return false
-  }
-  return true
-}
-
 function doPatch(installs: AppInstall[], versionFlag?: string): boolean {
-  const dict = loadDict()
-  const rules = getRules()
-  const target = selectTarget(installs, versionFlag)
-  const state = getStatus(target).state
-  if (state === 'broken') {
-    log.error(`v${target.version} 处于异常状态，无法汉化。请先还原；如无完整备份，请重装 GitHub Desktop。`)
+  try {
+    const target = selectTarget(installs, versionFlag)
+    log.info(`开始汉化 v${target.version} ...`)
+    const result = applyPatch(installs, versionFlag)
+    log.success(`汉化完成 v${result.version}`)
+    process.stdout.write(`  索引注入: ${result.indexPatched ? '成功' : '跳过'}\n`)
+    process.stdout.write(`  菜单注入: ${result.mainPatched ? '成功' : '跳过'}\n`)
+    process.stdout.write(`  运行时写入: ${result.runtimeWritten ? '成功' : '跳过'}\n`)
+    process.stdout.write(`  备份创建: ${result.backupCreated ? '是' : '已存在'}\n`)
+    log.info('请重新打开 GitHub Desktop 以查看效果。')
+    return true
+  } catch (error) {
+    log.error((error as Error).message)
     return false
   }
-  if (!ensureDesktopStopped()) return false
-  log.info(`开始汉化 v${target.version} ...`)
-  const result = patch(target, dict, rules)
-  log.success(`汉化完成 v${result.version}`)
-  process.stdout.write(`  索引注入: ${result.indexPatched ? '成功' : '跳过'}\n`)
-  process.stdout.write(`  菜单注入: ${result.mainPatched ? '成功' : '跳过'}\n`)
-  process.stdout.write(`  运行时写入: ${result.runtimeWritten ? '成功' : '跳过'}\n`)
-  process.stdout.write(`  备份创建: ${result.backupCreated ? '是' : '已存在'}\n`)
-  log.info('请重新打开 GitHub Desktop 以查看效果。')
-  return true
 }
 
 function doRestore(installs: AppInstall[], versionFlag?: string): boolean {
-  const target = selectTarget(installs, versionFlag)
-  const status = getStatus(target)
-  const state = status.state
-  if (state === 'none') {
-    log.warn(`v${target.version} 未汉化，无需还原。`)
+  try {
+    const target = selectTarget(installs, versionFlag)
+    log.info(`开始还原 v${target.version} ...`)
+    const version = restoreOriginal(installs, versionFlag)
+    log.success(`还原完成 v${version}`)
+    log.info('请重新打开 GitHub Desktop 以确认已恢复英文。')
+    return true
+  } catch (error) {
+    log.error((error as Error).message)
     return false
   }
-  if (state === 'broken' && !status.hasBackup) {
-    log.error(`v${target.version} 缺少完整备份，无法还原。建议重装 GitHub Desktop。`)
-    return false
-  }
-  if (state === 'broken') {
-    log.warn(`v${target.version} 处于异常状态，将从完整备份还原。`)
-  }
-  if (!ensureDesktopStopped()) return false
-  log.info(`开始还原 v${target.version} ...`)
-  restore(target)
-  log.success(`还原完成 v${target.version}`)
-  log.info('请重新打开 GitHub Desktop 以确认已恢复英文。')
-  return true
 }
 
 function printHelp(): void {

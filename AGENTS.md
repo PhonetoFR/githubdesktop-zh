@@ -121,22 +121,21 @@ changes、diff(文本)、history、branches、merge-conflicts、multi-commit-ope
 
 ## 9. 发布流程(Release)
 
-1. 改 `package.json` 的 `version` → commit `chore: bump version to x.y.z` → push。
-2. `CI=true npm run package` 生成 `build/patch.exe`。
+1. 同步修改 `package.json` 与 `package-lock.json` 根版本 → commit → push。
+2. `npm run package` 生成 `build/github-desktop-zh-<version>-portable.exe`。
 3. `git tag -a vx.y.z -m "vx.y.z" && git push origin vx.y.z`。
-4. `gh release create vx.y.z build/patch.exe --title "vx.y.z" --notes-file <notes.md> --latest`。
-   - **37.7MB 上传会超时(默认 120s)**,拆两步:
-     - `gh release upload vx.y.z build/patch.exe --clobber`(长超时)
-     - `gh release edit vx.y.z --draft=false --latest`(发布)
-5. 验证:`gh release view vx.y.z --json isDraft,assets`。
+4. beta 使用 `gh release create ... --prerelease`;正式版才使用 `--latest`。
+5. 约 90MB 资产上传需使用长超时。
+6. 验证:`gh release view vx.y.z --json isDraft,isPrerelease,assets`。
 
 ## 10. 路线图(按风险分级)
 
-### 已完成(本会话)
-- ✅ 字典 433→771(三批)
-- ✅ 动态规则 11→28
-- ✅ 单元测试 17 个
-- ✅ macOS/Linux 进程检测(`pgrep -x`)
+### 已完成
+- GUI portable EXE,原生 HTML/CSS/JS 界面
+- Electron sandbox/contextIsolation/contextBridge 与 IPC sender 校验
+- 共享 application service,CLI 功能保留
+- 补丁/还原事务回滚和所有权保护
+- 字典 1307 条、动态规则 43 条、测试 32 项
 
 ### 安全可做(纯数据/增量,本机可验证)
 - 字典 batch 4(见第 7 节候选)
@@ -144,19 +143,19 @@ changes、diff(文本)、history、branches、merge-conflicts、multi-commit-ope
 
 ### 有风险(改注入运行时,本机无法验证,需 Windows 实测)
 - **菜单覆盖 `new MenuItem()`**(`src/menu-patch.ts`):现只劫持 `Menu.buildFromTemplate`。补 `MenuItem` 构造器 hook 可覆盖右键菜单,但写错会崩整个应用菜单。注意 `role`-based 菜单项(undo/redo/copy)无 `label` 字段,由 OS 本地化,不要碰。
-- **升级后自动重打补丁**:Squirrel 升级建新 `app-x.y.z` 目录致汉化失效。需装系统常驻进程(launch agent/计划任务),跨平台且无法在 Ubuntu 验证。
+- **升级后自动重打补丁**:Squirrel 升级建新 `app-x.y.z` 目录致汉化失效。当前 GUI 会显示新版本,需用户重新点击汉化。
 - **runtime 跨元素容器翻译**(`src/runtime.ts:tryTranslateContainer`):改 `textContent` 可能与 React 虚拟 DOM 冲突导致重渲染异常。
-- **跨平台 pkg 多 target**:`package.json` 现只 `node18-win-x64`。pkg 已停维,加 mac/linux target 价值低且无法验证。
+- **跨平台**:GUI 和安装定位当前明确只支持 Windows x64。
 
 ### 已知小瑕疵(可选修)
-- `src/patcher.ts` `restore()` 还原后会 `unlinkSync` 删备份,使 `PatchState='restored'`(hasBackup && !isPatched)理论不可达;`main.ts` 的 `STATE_LABEL['restored']='已还原(备份保留)'` 与行为略不一致。要么保留备份,要么改 label。当前无害。
+- Electron portable 约 89.6MB,明显大于旧 pkg CLI 的约 38MB。
+- `pkg@5.8.1` 仅用于可选 CLI,存在无上游修复的本地权限提升 advisory;GUI 生产依赖审计为 0。
 
 ## 11. 环境与认证
 
-- 开发机:Ubuntu(无 GitHub Desktop 安装,`findInstalls()` 会报错,无法本地跑 patch 效果,只能 build/test)。
-- `gh auth` 已登录账号 `PhonetoFR`,**协议 ssh**。origin 已切到 SSH(`git@github.com:...`),push 免凭据。
-- 如换机:`gh auth login` 后,若 origin 是 https 且 push 报凭据错误,`git remote set-url origin git@github.com:PhonetoFR/githubdesktop-zh.git`。
-- `patch.exe` **未在 Windows 实测过**(Ubuntu 只能验证 PE 格式 + 字典/规则数据)。换到 Windows 机后建议跑一次确认汉化生效。
+- 开发机:Windows 11,已安装 GitHub Desktop,可做真实 GUI/补丁回归。
+- `gh auth` 已登录账号 `PhonetoFR`,Git 协议为 HTTPS。
+- GUI portable 已在本机实测;每次改 IPC、打包路径或 patcher 后仍需重复汉化/还原闭环。
 
 ## 12. 提交约定
 

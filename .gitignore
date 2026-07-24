@@ -57,6 +57,8 @@ jest.e2e.config.js
 # 构建产物
 out/
 dist/
+build-resources/
+gui/icon.png
 node_modules/
 
 # IDE
