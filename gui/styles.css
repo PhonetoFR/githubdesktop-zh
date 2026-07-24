@@ -1,6 +1,7 @@
 :root {
   color-scheme: light;
   font-family: "Segoe UI Variable", "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  font-size: 100%;
   color: #1f2328;
   background: #f3f6fa;
   font-synthesis: none;
@@ -12,9 +13,20 @@
 
 body {
   margin: 0;
-  min-width: 680px;
   min-height: 100vh;
   background: #f3f6fa;
+}
+
+.window-drag-region {
+  position: fixed;
+  z-index: 10;
+  top: 0;
+  left: 0;
+  width: env(titlebar-area-width, calc(100% - 138px));
+  height: env(titlebar-area-height, 48px);
+  user-select: none;
+  app-region: drag;
+  -webkit-app-region: drag;
 }
 
 button,
@@ -24,14 +36,14 @@ select {
 
 button:focus-visible,
 select:focus-visible {
-  outline: 3px solid rgba(9, 105, 218, 0.24);
+  outline: 3px solid #0969da;
   outline-offset: 2px;
 }
 
 .shell {
   width: min(760px, calc(100% - 64px));
   margin: 0 auto;
-  padding: 42px 0 26px;
+  padding: calc(env(titlebar-area-height, 48px) + 18px) 0 26px;
 }
 
 .header {
@@ -79,7 +91,7 @@ p {
 }
 
 h1 {
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 680;
   letter-spacing: -0.02em;
 }
@@ -87,7 +99,7 @@ h1 {
 .brand-copy p {
   margin-top: 5px;
   color: #656d76;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .version {
@@ -96,7 +108,7 @@ h1 {
   border-radius: 999px;
   color: #656d76;
   background: rgba(255, 255, 255, 0.72);
-  font-size: 11px;
+  font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -119,18 +131,18 @@ h1 {
 }
 
 .state-copy strong {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 650;
 }
 
 .state-copy > span:last-child {
   color: #656d76;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .eyebrow {
   color: #656d76;
-  font-size: 11px;
+  font-size: 0.75rem;
   font-weight: 650;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -144,7 +156,7 @@ h1 {
   border-radius: 999px;
   color: #656d76;
   background: #eef1f4;
-  font-size: 12px;
+  font-size: 0.8125rem;
   font-weight: 650;
   white-space: nowrap;
 }
@@ -200,14 +212,14 @@ h1 {
 
 h2 {
   margin-top: 3px;
-  font-size: 17px;
+  font-size: 1.0625rem;
   font-weight: 650;
 }
 
 .icon-button {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   place-items: center;
   border: 1px solid #d0d7de;
@@ -239,19 +251,19 @@ h2 {
   display: grid;
   gap: 7px;
   color: #57606a;
-  font-size: 12px;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
 select {
   width: 100%;
-  height: 42px;
+  min-height: 44px;
   padding: 0 38px 0 12px;
   border: 1px solid #b7bec7;
   border-radius: 8px;
   color: #1f2328;
   background: #ffffff;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 select:hover:not(:disabled) {
@@ -276,7 +288,7 @@ select:disabled {
   justify-content: space-between;
   gap: 16px;
   color: #656d76;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .detail-row + .detail-row {
@@ -285,7 +297,7 @@ select:disabled {
 
 .detail-row strong {
   color: #1f2328;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
@@ -294,7 +306,7 @@ select:disabled {
   align-items: center;
   padding: 4px 9px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 0.8125rem;
   font-weight: 650;
 }
 
@@ -328,7 +340,7 @@ select:disabled {
   border-radius: 8px;
   color: #0550ae;
   background: #ddf4ff;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.45;
 }
 
@@ -345,7 +357,15 @@ select:disabled {
 }
 
 .notice.hidden {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  border: 0;
+  white-space: nowrap;
 }
 
 .notice svg {
@@ -367,14 +387,14 @@ select:disabled {
 
 .button {
   display: inline-flex;
-  min-height: 42px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 8px;
   padding: 0 18px;
   border: 1px solid transparent;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 650;
   cursor: pointer;
   transition: background-color 120ms ease, border-color 120ms ease, opacity 120ms ease;
@@ -417,7 +437,7 @@ select:disabled {
 .action-hint {
   margin-top: 10px;
   color: #656d76;
-  font-size: 12px;
+  font-size: 0.8125rem;
   text-align: center;
 }
 
@@ -428,15 +448,16 @@ select:disabled {
   gap: 20px;
   padding: 18px 4px 0;
   color: #656d76;
-  font-size: 12px;
+  font-size: 0.8125rem;
 }
 
 .footer button {
-  padding: 0;
+  min-height: 44px;
+  padding: 0 8px;
   border: 0;
   color: #0969da;
   background: transparent;
-  font-size: 12px;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -447,7 +468,49 @@ select:disabled {
 
 @media (max-width: 740px) {
   .shell {
-    width: calc(100% - 40px);
-    padding-top: 30px;
+    width: calc(100% - 32px);
+  }
+}
+
+@media (max-width: 560px) {
+  .header,
+  .desktop-state,
+  .footer {
+    align-items: flex-start;
+  }
+
+  .title-line,
+  .desktop-state,
+  .footer {
+    flex-direction: column;
+  }
+
+  .actions {
+    grid-template-columns: 1fr;
+  }
+
+  .footer {
+    gap: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .state-indicator,
+  .status-badge,
+  .notice {
+    border: 1px solid currentColor;
+  }
+
+  .indicator-dot {
+    background: currentColor !important;
   }
 }

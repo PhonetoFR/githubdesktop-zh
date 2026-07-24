@@ -4,51 +4,47 @@
 
 ## 1. 项目是什么
 
-一键将 GitHub Desktop 永久汉化为简体中文的补丁工具。**非侵入式**:不改编 GitHub Desktop 核心逻辑,只注入一层翻译运行时。
+Windows 图形化 GitHub Desktop 简体中文补丁工具。默认发行形式为免安装 Electron portable EXE,同时保留独立 CLI 构建。
 
-**原理**:修改 GitHub Desktop 安装目录下的 `renderer.js`(注入翻译运行时)+ `main.js`(劫持 `Menu.buildFromTemplate`)。运行时用 MutationObserver 监听 DOM,把英文文本节点和 `aria-label/title/placeholder/alt` 属性精确替换为中文。原文件备份为 `.bak`,可一键还原。
+**原理**:在 GitHub Desktop 的 `index.html` 中加载 `zh/runtime.js`,并修改 `main.js` 劫持 `Menu.buildFromTemplate`。运行时用 MutationObserver 监听 DOM,把英文文本节点和 `aria-label/title/placeholder/alt` 属性精确替换为中文。原文件备份为 `.bak`,补丁和还原失败时自动回滚。
 
 - 仓库:`https://github.com/PhonetoFR/githubdesktop-zh`
 - 默认分支:`master`
 - 许可:MIT
-- 当前版本:`1.0.0-beta2`(已发 Release,附 `patch.exe`)
+- 当前版本:`1.1.0-beta.2`(GUI portable beta)
 
-## 2. 当前状态(2026-07-06 截止)
+## 2. 当前状态(2026-07-24 截止)
 
 | 维度 | 数值 |
 |---|---|
-| 字典条目 `dict/zh-CN.json` | 771 |
-| 动态规则 `src/rules.ts` | 28 |
-| 单元测试 `test/*.test.cjs` | 17(全过) |
-| 版本 | 1.0.0-beta2 |
-| Release | v1.0.0-beta2(Latest),资产 `patch.exe` 37.7MB |
-| 远端 origin | `git@github.com:PhonetoFR/githubdesktop-zh.git`(SSH) |
+| 字典条目 `dict/zh-CN.json` | 1307 |
+| 动态规则 `src/rules.ts` | 43 |
+| 单元测试 `test/*.test.cjs` | 33(全过) |
+| 版本 | 1.1.0-beta.2 |
+| 默认产物 | `github-desktop-zh-1.1.0-beta.2-portable.exe`(约 89.6MB) |
+| 远端 origin | `https://github.com/PhonetoFR/githubdesktop-zh.git` |
 
-最近提交(本会话):
-```
-cebdbbe docs: note CI=true workaround for pkg-fetch progress bar assertion
-30fe237 chore: bump version to 1.0.0-beta2
-bed2708 feat: expand dictionary batch 3 (...671→771)
-3b6e7bd feat: expand dictionary batch 2 (...552→671)
-644d273 feat: detect running GitHub Desktop on macOS/Linux via pgrep
-a06f423 test: add node:test suite ...(16 tests)
-8f21d0a feat: add 17 dynamic text rules ...
-d0cb96f feat: expand dictionary ...(433→552)
-```
+GUI 已在 Windows 上完成 portable 启动、状态读取、汉化和还原闭环实测。测试目标为 GitHub Desktop 3.6.3,还原后源文件与 `.bak` 一致且 `zh/runtime.js` 已删除。
 
 ## 3. 架构(文件地图)
 
 ```
 src/
-├── main.ts        CLI 入口、参数解析(--patch/--restore/--status)、交互菜单
-├── patcher.ts     核心:patch()/restore()/getState()/isDesktopRunning()
-├── locator.ts     查找 GitHub Desktop 安装路径(Win/mac/linux)、backupPath
-├── runtime.ts     buildRuntime(dict,rules) → 注入到 renderer.js 的 IIFE 源串
+├── gui-main.ts    Electron 主进程、BrowserWindow、安全 IPC
+├── gui-preload.ts contextBridge 窄接口
+├── gui-contract.ts GUI IPC 数据类型
+├── application.ts CLI/GUI 共用的操作编排与安全检查
+├── main.ts        保留的 CLI 入口(--patch/--restore/--status)
+├── patcher.ts     补丁状态、备份、事务写入、回滚、还原
+├── locator.ts     查找 Windows GitHub Desktop 安装路径
+├── runtime.ts     buildRuntime(dict,rules) → zh/runtime.js
 ├── menu-patch.ts  buildMenuPatch(dict) → 注入到 main.js 的 IIFE 源串(劫持 Menu.buildFromTemplate)
 ├── rules.ts       getRules() → 动态文本正则规则数组
 ├── dict.ts        loadDict()/validateDict()(运行时校验重复键/空值)
 ├── prompt.ts      交互式菜单 UI
 └── log.ts         日志
+gui/               原生 HTML/CSS/JS 界面资源
+scripts/           构建清理与图标生成脚本
 dict/zh-CN.json    精确翻译字典(运行时 trim 后大小写敏感全等匹配)
 test/*.test.cjs    node:test 单元测试(零依赖,require ../dist/)
 ```
@@ -60,15 +56,19 @@ test/*.test.cjs    node:test 单元测试(零依赖,require ../dist/)
 ```bash
 npm run build      # tsc 编译 src/ → dist/
 npm test           # build + node --test test/*.test.cjs(改字典/规则后必跑)
-npm run dev        # ts-node src/main.ts 直接运行
-npm run package    # pkg 打包 → build/patch.exe(win-x64)
+npm run dev        # 构建并启动 Electron GUI
+npm run package    # electron-builder portable → build/*-portable.exe
+npm run package:cli # 可选:pkg 打包 → build/patch-cli.exe
 npm run lint       # eslint(需先 npm install;node_modules 未装时不可用)
 ```
 
 ### 必读 gotcha
-- **打包必须加 `CI=true`**:`CI=true npm run package`。pkg 5.8.1 的 `pkg-fetch` 在新版 Node 上因进度条断言 `(!this.bar)` 崩溃,`CI=true` 关进度条即可。产物 `build/patch.exe` 约 38MB,PE32+ x86-64。
+- **GUI 固定为 portable**:`package.json` 的 electron-builder target 只有 `portable`,不生成 MSI/NSIS 安装器。启动时临时解包,关闭后清理。
+- **不要给 GUI 打包设置 `CI=true`**:electron-builder 会把 CI 环境解释为自动发布。脚本已显式带 `--publish never`。
+- **CLI 才需要 `CI=true`**:pkg 5.8.1 在新版 Node 上可能触发进度条断言,用 `CI=true npm run package:cli`。
 - **测试先 build**:`test/*.test.cjs` require `../dist/`,所以 `npm test` 内含 `npm run build`。直接 `node --test` 不行。
-- **dist/ 被 gitignore**:不提交,靠 build 重新生成。
+- **构建自动清理**:`npm run build` 先删除 `dist`;打包前删除 `build`,避免旧文件进入产物或被误上传。
+- **产物未代码签名**:当前 portable EXE 的 Authenticode 状态为 `NotSigned`,Windows 可能显示 SmartScreen 提示。
 
 ## 5. 翻译运行时语义(改字典/规则必读)
 
@@ -135,7 +135,7 @@ changes、diff(文本)、history、branches、merge-conflicts、multi-commit-ope
 - Electron sandbox/contextIsolation/contextBridge 与 IPC sender 校验
 - 共享 application service,CLI 功能保留
 - 补丁/还原事务回滚和所有权保护
-- 字典 1307 条、动态规则 43 条、测试 32 项
+- 字典 1307 条、动态规则 43 条、测试 33 项
 
 ### 安全可做(纯数据/增量,本机可验证)
 - 字典 batch 4(见第 7 节候选)

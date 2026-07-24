@@ -91,6 +91,12 @@ function createWindow(): void {
     backgroundColor: '#f3f6fa',
     title: 'GitHub Desktop 汉化补丁',
     icon: path.join(__dirname, '..', 'gui', 'icon.png'),
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#f3f6fa',
+      symbolColor: '#1f2328',
+      height: 48,
+    },
     webPreferences: {
       preload: path.join(__dirname, 'gui-preload.js'),
       contextIsolation: true,

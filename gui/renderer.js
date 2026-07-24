@@ -15,6 +15,7 @@ const elements = {
   actionHint: document.getElementById('action-hint'),
   notice: document.getElementById('notice'),
   noticeText: document.getElementById('notice-text'),
+  operationPanel: document.getElementById('operation-panel'),
   repositoryButton: document.getElementById('repository-button'),
 }
 
@@ -22,6 +23,7 @@ const view = {
   snapshot: null,
   selectedVersion: null,
   busy: false,
+  activity: null,
 }
 
 const stateLabels = {
@@ -42,6 +44,8 @@ function setNotice(message, tone = 'info') {
     elements.noticeText.textContent = ''
     return
   }
+  elements.notice.setAttribute('role', tone === 'error' ? 'alert' : 'status')
+  elements.notice.setAttribute('aria-live', tone === 'error' ? 'assertive' : 'polite')
   elements.notice.className = `notice ${tone}`
   elements.noticeText.textContent = message
 }
@@ -50,7 +54,7 @@ function renderProcessState() {
   const state = view.snapshot ? view.snapshot.processState : null
   elements.processIndicator.className = 'state-indicator'
 
-  if (state === null && view.busy) {
+  if (view.activity === 'refresh') {
     elements.processTitle.textContent = '正在检测 GitHub Desktop'
     elements.processDescription.textContent = '请稍候'
     elements.processLabel.textContent = '检测中'
@@ -125,11 +129,14 @@ function renderInstallDetails() {
   elements.patchButton.disabled = view.busy || !processReady || !canPatch
   elements.restoreButton.disabled = view.busy || !processReady || !canRestore
   elements.refreshButton.disabled = view.busy
+  elements.operationPanel.setAttribute('aria-busy', String(view.busy))
   elements.patchButton.querySelector('span').textContent =
     install && install.state === 'patched' ? '重新应用汉化' : '应用汉化'
 
   if (view.busy) {
-    elements.actionHint.textContent = '正在处理文件，请勿关闭程序...'
+    elements.actionHint.textContent = view.activity === 'refresh'
+      ? '正在刷新安装与运行状态...'
+      : '正在处理文件，请勿关闭程序...'
   } else if (!install) {
     elements.actionHint.textContent = '请先安装 GitHub Desktop。'
   } else if (!processReady) {
@@ -152,6 +159,7 @@ function render() {
 
 async function refreshState(options = {}) {
   view.busy = true
+  view.activity = 'refresh'
   render()
   if (!options.keepNotice) setNotice('')
 
@@ -160,12 +168,14 @@ async function refreshState(options = {}) {
     response = await window.zhPatch.getState()
   } catch (error) {
     view.busy = false
+    view.activity = null
     view.snapshot = null
     render()
     setNotice(error instanceof Error ? error.message : '读取应用状态失败。', 'error')
     return
   }
   view.busy = false
+  view.activity = null
   if (!response.ok || !response.data) {
     view.snapshot = null
     render()
@@ -182,6 +192,7 @@ async function runAction(action) {
   if (!install || view.busy) return
 
   view.busy = true
+  view.activity = action
   render()
   setNotice(action === 'patch' ? '正在应用汉化...' : '正在还原英文...')
 
@@ -190,11 +201,13 @@ async function runAction(action) {
     response = await window.zhPatch.runAction(action, install.version)
   } catch (error) {
     view.busy = false
+    view.activity = null
     render()
     setNotice(error instanceof Error ? error.message : '操作失败。', 'error')
     return
   }
   view.busy = false
+  view.activity = null
   if (!response.ok || !response.data) {
     setNotice(response.error || '操作失败。', 'error')
     await refreshState({ keepNotice: true })
