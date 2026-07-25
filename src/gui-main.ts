@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell, IpcMainInvokeEvent } from 'electron'
+import { app, BrowserWindow, ipcMain, shell, IpcMainInvokeEvent, nativeTheme } from 'electron'
 import * as path from 'path'
 import { applyPatch, getApplicationSnapshot, restoreOriginal } from './application'
 import { findInstalls } from './locator'
@@ -112,6 +112,22 @@ function createWindow(): void {
   window.on('closed', () => {
     if (mainWindow === window) {mainWindow = null}
   })
+
+  function updateOverlay() {
+    if (!window || window.isDestroyed()) {return}
+    const dark = nativeTheme.shouldUseDarkColors
+    window.setTitleBarOverlay({
+      color: dark ? '#0d1117' : '#f3f6fa',
+      symbolColor: dark ? '#e6edf3' : '#1f2328',
+      height: 48,
+    })
+    window.setBackgroundColor(dark ? '#0d1117' : '#f3f6fa')
+  }
+
+  updateOverlay()
+  nativeTheme.on('updated', updateOverlay)
+  window.on('closed', () => { nativeTheme.off('updated', updateOverlay) })
+
   void window.loadFile(path.join(__dirname, '..', 'gui', 'index.html'))
   mainWindow = window
 }

@@ -247,4 +247,10 @@ elements.repositoryButton.addEventListener('click', async () => {
   }
 })
 
+let focusRefreshTimer = 0
+window.addEventListener('focus', () => {
+  clearTimeout(focusRefreshTimer)
+  focusRefreshTimer = setTimeout(() => refreshState(), 800)
+})
+
 void refreshState()
