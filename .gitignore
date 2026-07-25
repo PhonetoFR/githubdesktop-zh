@@ -58,7 +58,6 @@ jest.e2e.config.js
 out/
 dist/
 build-resources/
-gui/icon.png
 node_modules/
 
 # IDE
