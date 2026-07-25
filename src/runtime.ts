@@ -110,12 +110,23 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
     }
   }
 
+  function isSkipTree(node) {
+    var p = node;
+    while (p) {
+      if (p.nodeType === 1 && isSkipTag(p)) return true;
+      p = p.parentNode;
+    }
+    return false;
+  }
+
   function walk(root) {
     if (!root) return;
     try {
       var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
       while (walker.nextNode()) {
-        translateTextNode(walker.currentNode);
+        if (!isSkipTree(walker.currentNode)) {
+          translateTextNode(walker.currentNode);
+        }
       }
     } catch (e) {}
     if (root.nodeType === 1) {
@@ -177,7 +188,9 @@ export function buildRuntime(dict: Dict, rules: Rule[] = []): string {
   function start() {
     var target = document.body;
     if (!target) {
-      document.addEventListener('DOMContentLoaded', start, { once: true });
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start, { once: true });
+      }
       return;
     }
     walk(target);
