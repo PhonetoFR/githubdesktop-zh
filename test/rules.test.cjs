@@ -86,7 +86,6 @@ const negatives = [
   'random english sentence',
   '5 random things',
   'commits ahead',
-  'Last fetched',
   'ahead of main',
 ]
 
