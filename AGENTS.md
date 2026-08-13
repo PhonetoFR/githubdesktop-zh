@@ -17,8 +17,8 @@ Windows 图形化 GitHub Desktop 简体中文补丁工具。默认发行形式�
 
 | 维度 | 数值 |
 |---|---|
-| 字典条目 `dict/zh-CN.json` | 1210(已清理 90 条不可达片段 key) |
-| 动态规则 `src/rules.ts` | 44 |
+| 字典条目 `dict/zh-CN.json` | 1237(已清理 90 条不可达片段 key) |
+| 动态规则 `src/rules.ts` | 54 |
 | 单元测试 `test/*.test.cjs` | 35(全过) |
 | 版本 | 1.1.2 |
 | 默认产物 | `github-desktop-zh-1.1.2-portable.exe`(约 69MB,1.1.1 起精简) |
@@ -108,9 +108,17 @@ console.log('batch:',batch.length,'internalDup:',dup,'collide:',col);"
 
 ### 已挖过的组件(勿重复)
 changes、diff(文本)、history、branches、merge-conflicts、multi-commit-operation、clone-repository、add-repository、create-branch、create-tag、delete-branch、delete-tag、discard-changes、no-repositories、banners、check-runs、lfs、forks、local-changes-overwritten、hook-failed、missing-repository、install-git、invalidated-token、generic-git-auth、cli-installed、change-repository-alias、choose-fork-settings、cloning-repository、commit-progress、commit-message、about、acknowledgements、account-picker、editor、stashing、rebase、cherry-pick、pull-request-preview、copilot、move-to-applications-folder、cli-action、image-diffs。
+batch 4 已挖:autocompletion、keyboard-shortcut(纯键名无文案)、notifications、app-error(含 lib/copilot-error 文案)、checkout、diff/syntax-highlighting、submodule-diff、open-pull-request(pull-request-preview 在 development 已改名)。
 
-### 仍可挖(batch 4 候选)
-`autocompletion`(提及/emoji)、`keyboard-shortcut`(快捷键对话框)、`diff/syntax-highlighting`、`checkout`、`app-error`、`notifications` 正文、`create-branch`/`commit-message` 遗漏项、`pull-request-preview` 遗漏项。
+### 经验教训(batch 4 挖矿沉淀)
+- **跨内联元素的句子不可达**:如 `Would you like to retry cloning <Ref>{x}</Ref>?`、`This submodule changed its commit from <Ref/> to <Ref/>.`、`This file uses '{x}' line endings, but <LinkButton/> to '{y}'...`。这类只取完整句的规则/字典均无法命中,直接放弃,除非文本节点本身完整。
+- **字符串渲染形态先看 JSX 结构**:`{var}` 纯字符串插值是同一文本节点(可命中);`<Element>` 包裹会断开节点。
+- **sr-only/aria-live 文本也是翻译目标**且通常单节点(`Lines N to M added` 等)。
+- **菜单标签用 `stripAccessKey` 后的形态收字典**(如 `View pull request on GitHub`),`build-default-menu.ts` 可用正则批量提取 `label:` 并 diff 现有字典。
+- 上游代码搜索:`gh api "search/code?q=...repo:desktop/desktop"` 可快速验证字符串是否真实存在(30 req/min)。
+
+### 仍可挖(batch 5 候选)
+`app-menu`(全部上下文菜单标签批量 diff)、`preferences`、`repository-settings`、`app`(About/更新横幅遗漏项)、`lib`(dialog 通用文案)、`toolbar`、`undo-redo` 提示。
 
 ## 8. 如何扩动态规则(`src/rules.ts`)
 
@@ -138,10 +146,12 @@ changes、diff(文本)、history、branches、merge-conflicts、multi-commit-ope
 - 深色模式、焦点自动刷新、动态标题栏配色、刷新按钮动画(v1.1.1+)
 - 包体精简 85→69MB、TreeWalker 跳过 CODE/PRE、DOMContentLoaded 竞态修复(v1.1.1+)
 - 字典片段 key 清理(1300→1210,删 90 条不可达片段)
-- 字典 1210 条、动态规则 44 条、测试 35 项
+- 字典 batch 4(1210→1237,copilot-error/diff/merge-status/菜单标签)
+- 动态规则 batch 4(44→54,diff 搜索/create-branch/copilot 重试)
+- 字典 1237 条、动态规则 54 条、测试 35 项
 
 ### 安全可做(纯数据/增量,本机可验证)
-- 字典 batch 4(见第 7 节候选)
+- 字典 batch 5(见第 7 节候选)
 - 补 rules 新正例 + 对应测试
 
 ### 有风险(改注入运行时,本机无法验证,需 Windows 实测)
