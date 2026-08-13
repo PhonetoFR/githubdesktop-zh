@@ -11,17 +11,17 @@ Windows 图形化 GitHub Desktop 简体中文补丁工具。默认发行形式�
 - 仓库:`https://github.com/PhonetoFR/githubdesktop-zh`
 - 默认分支:`master`
 - 许可:MIT
-- 当前版本:`1.1.0`(正式版)
+- 当前版本:`1.1.2`(正式版)
 
-## 2. 当前状态(2026-07-24 截止)
+## 2. 当前状态(2026-07-25 截止)
 
 | 维度 | 数值 |
 |---|---|
-| 字典条目 `dict/zh-CN.json` | 1307 |
-| 动态规则 `src/rules.ts` | 43 |
+| 字典条目 `dict/zh-CN.json` | 1210(已清理 90 条不可达片段 key) |
+| 动态规则 `src/rules.ts` | 44 |
 | 单元测试 `test/*.test.cjs` | 35(全过) |
-| 版本 | 1.1.0 |
-| 默认产物 | `github-desktop-zh-1.1.0-portable.exe`(约 89.6MB) |
+| 版本 | 1.1.2 |
+| 默认产物 | `github-desktop-zh-1.1.2-portable.exe`(约 69MB,1.1.1 起精简) |
 | 远端 origin | `https://github.com/PhonetoFR/githubdesktop-zh.git` |
 
 GUI 已在 Windows 上完成 portable 启动、状态读取、汉化和还原闭环实测。测试目标为 GitHub Desktop 3.6.3,还原后源文件与 `.bak` 一致且 `zh/runtime.js` 已删除。
@@ -125,7 +125,7 @@ changes、diff(文本)、history、branches、merge-conflicts、multi-commit-ope
 2. `npm run package` 生成 `build/github-desktop-zh-<version>-portable.exe`。
 3. `git tag -a vx.y.z -m "vx.y.z" && git push origin vx.y.z`。
 4. beta 使用 `gh release create ... --prerelease`;正式版才使用 `--latest`。
-5. 约 90MB 资产上传需使用长超时。
+5. 约 70MB 资产上传需使用长超时。
 6. 验证:`gh release view vx.y.z --json isDraft,isPrerelease,assets`。
 
 ## 10. 路线图(按风险分级)
@@ -135,7 +135,10 @@ changes、diff(文本)、history、branches、merge-conflicts、multi-commit-ope
 - Electron sandbox/contextIsolation/contextBridge 与 IPC sender 校验
 - 共享 application service,CLI 功能保留
 - 补丁/还原事务回滚和所有权保护
-- 字典 1307 条、动态规则 43 条、测试 33 项
+- 深色模式、焦点自动刷新、动态标题栏配色、刷新按钮动画(v1.1.1+)
+- 包体精简 85→69MB、TreeWalker 跳过 CODE/PRE、DOMContentLoaded 竞态修复(v1.1.1+)
+- 字典片段 key 清理(1300→1210,删 90 条不可达片段)
+- 字典 1210 条、动态规则 44 条、测试 35 项
 
 ### 安全可做(纯数据/增量,本机可验证)
 - 字典 batch 4(见第 7 节候选)
@@ -148,14 +151,14 @@ changes、diff(文本)、history、branches、merge-conflicts、multi-commit-ope
 - **跨平台**:GUI 和安装定位当前明确只支持 Windows x64。
 
 ### 已知小瑕疵(可选修)
-- Electron portable 约 89.6MB,明显大于旧 pkg CLI 的约 38MB。
+- Electron portable 约 69MB,仍大于旧 pkg CLI 的约 38MB。
 - `pkg@5.8.1` 仅用于可选 CLI,存在无上游修复的本地权限提升 advisory;GUI 生产依赖审计为 0。
 
 ## 11. 环境与认证
 
-- 开发机:Windows 11,已安装 GitHub Desktop,可做真实 GUI/补丁回归。
+- 当前开发机:Linux(构建/测试/lint 可完整运行);Windows 11 用于 GUI/补丁回归实测(已装 GitHub Desktop)。
 - `gh auth` 已登录账号 `PhonetoFR`,Git 协议为 HTTPS。
-- GUI portable 已在本机实测;每次改 IPC、打包路径或 patcher 后仍需重复汉化/还原闭环。
+- GUI portable 已在 Windows 本机实测;每次改 IPC、打包路径或 patcher 后仍需重复汉化/还原闭环。
 
 ## 12. 提交约定
 
