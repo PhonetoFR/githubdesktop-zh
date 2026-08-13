@@ -221,5 +221,55 @@ export function getRules(): Rule[] {
       flags: '',
       replacement: '为什么绕过 $1？',
     },
+    {
+      pattern: '^No results for "(.+)"$',
+      flags: '',
+      replacement: '未找到“$1”的结果',
+    },
+    {
+      pattern: '^Result (\\d+) of (\\d+) for "(.+)"$',
+      flags: '',
+      replacement: '“$3”的结果：$1/$2',
+    },
+    {
+      pattern: '^Lines (\\d+) to (\\d+) added$',
+      flags: '',
+      replacement: '第 $1 到 $2 行新增',
+    },
+    {
+      pattern: '^Lines (\\d+) to (\\d+) deleted$',
+      flags: '',
+      replacement: '第 $1 到 $2 行删除',
+    },
+    {
+      pattern: '^Lines (\\d+) to (\\d+) modified$',
+      flags: '',
+      replacement: '第 $1 到 $2 行修改',
+    },
+    {
+      pattern: '^A branch named (.+) already exists\\.$',
+      flags: '',
+      replacement: '已存在名为 $1 的分支。',
+    },
+    {
+      pattern: "^Your new branch will be based on the commit '(.+)' \\((.+)\\) from your repository\\.$",
+      flags: '',
+      replacement: '你的新分支将基于仓库中的提交“$1”（$2）。',
+    },
+    {
+      pattern: '^You do not currently have any branch checked out \\(your HEAD reference is detached\\)\\. As such your new branch will be based on your currently checked out commit \\((.+)\\)\\.$',
+      flags: '',
+      replacement: '你当前未检出任何分支（你的 HEAD 引用处于分离状态）。因此，你的新分支将基于你当前检出的提交（$1）。',
+    },
+    {
+      pattern: '^You can try again in (\\d+) (second|seconds)\\.$',
+      flags: '',
+      replacement: '$1 秒后可以重试。',
+    },
+    {
+      pattern: '^You can try again after (.+)\\.$',
+      flags: '',
+      replacement: '可在 $1 之后重试。',
+    },
   ]
 }

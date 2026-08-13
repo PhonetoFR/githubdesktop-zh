@@ -74,6 +74,19 @@ const positives = [
   ['Merge 3 commits into', '将 3 个提交合并到'],
   ['Merge 1 commit into', '将 1 个提交合并到'],
   ['Why are you bypassing this GitHub Token?', '为什么绕过 GitHub Token？'],
+  ['No results for "foo"', '未找到“foo”的结果'],
+  ['No results for "main branch"', '未找到“main branch”的结果'],
+  ['Result 1 of 5 for "foo"', '“foo”的结果：1/5'],
+  ['Result 12 of 30 for "commit"', '“commit”的结果：12/30'],
+  ['Lines 5 to 10 added', '第 5 到 10 行新增'],
+  ['Lines 5 to 10 deleted', '第 5 到 10 行删除'],
+  ['Lines 5 to 10 modified', '第 5 到 10 行修改'],
+  ['A branch named feature-x already exists.', '已存在名为 feature-x 的分支。'],
+  ["Your new branch will be based on the commit 'Fix typo' (a1b2c3d) from your repository.", '你的新分支将基于仓库中的提交“Fix typo”（a1b2c3d）。'],
+  ['You do not currently have any branch checked out (your HEAD reference is detached). As such your new branch will be based on your currently checked out commit (a1b2c3d).', '你当前未检出任何分支（你的 HEAD 引用处于分离状态）。因此，你的新分支将基于你当前检出的提交（a1b2c3d）。'],
+  ['You can try again in 30 seconds.', '30 秒后可以重试。'],
+  ['You can try again in 1 second.', '1 秒后可以重试。'],
+  ['You can try again after 2026-08-14T12:00:00Z.', '可在 2026-08-14T12:00:00Z 之后重试。'],
 ]
 
 test('规则正确翻译已知动态字符串', () => {
@@ -87,6 +100,12 @@ const negatives = [
   '5 random things',
   'commits ahead',
   'ahead of main',
+  'Result in progress',
+  'Lines 5 to 10 selected',
+  'A branch named already exists.',
+  'You can try again soon.',
+  'This submodule changed its commit from a to b.',
+  'This is a submodule based on the repository github/desktop.',
 ]
 
 test('规则不误匹配无关字符串', () => {
