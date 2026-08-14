@@ -18,7 +18,7 @@ Windows 图形化 GitHub Desktop 简体中文补丁工具。默认发行形式�
 | 维度 | 数值 |
 |---|---|
 | 字典条目 `dict/zh-CN.json` | 1237(已清理 90 条不可达片段 key) |
-| 动态规则 `src/rules.ts` | 54 |
+| 动态规则 `src/rules.ts` | 53 |
 | 单元测试 `test/*.test.cjs` | 35(全过) |
 | 版本 | 1.1.3 |
 | 默认产物 | `github-desktop-zh-1.1.3-portable.exe`(约 69MB,1.1.1 起精简) |
@@ -147,8 +147,8 @@ batch 4 已挖:autocompletion、keyboard-shortcut(纯键名无文案)、notifica
 - 包体精简 85→69MB、TreeWalker 跳过 CODE/PRE、DOMContentLoaded 竞态修复(v1.1.1+)
 - 字典片段 key 清理(1300→1210,删 90 条不可达片段)
 - 字典 batch 4(1210→1237,copilot-error/diff/merge-status/菜单标签)
-- 动态规则 batch 4(44→54,diff 搜索/create-branch/copilot 重试)
-- 字典 1237 条、动态规则 54 条、测试 35 项
+- 动态规则 batch 4(43→53,diff 搜索/create-branch/copilot 重试)
+- 字典 1237 条、动态规则 53 条、测试 35 项
 
 ### 安全可做(纯数据/增量,本机可验证)
 - 字典 batch 5(见第 7 节候选)
