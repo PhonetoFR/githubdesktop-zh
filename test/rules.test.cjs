@@ -87,6 +87,22 @@ const positives = [
   ['You can try again in 30 seconds.', '30 秒后可以重试。'],
   ['You can try again in 1 second.', '1 秒后可以重试。'],
   ['You can try again after 2026-08-14T12:00:00Z.', '可在 2026-08-14T12:00:00Z 之后重试。'],
+  ['(resets in 5 minutes)', '（5 分钟后重置）'],
+  ['(resets in 1 minute)', '（1 分钟后重置）'],
+  ['(resets in 3 hours)', '（3 小时后重置）'],
+  ['(resets in 2 days)', '（2 天后重置）'],
+  ['Pull upstream', '拉取 upstream'],
+  ['Pull upstream with rebase', '以变基方式拉取 upstream'],
+  ['Push upstream', '推送 upstream'],
+  ['AI credits per 1000 tokens', '每 1000 个 token 的 AI 积分'],
+  ['Primary remote repository (origin) URL', '主远程仓库（origin）URL'],
+  ['Primary Remote Repository (origin) URL', '主远程仓库（origin）URL'],
+  ['3 / 10 chat messages used', '3 / 10 条聊天消息已使用'],
+  ['5 / 20 code completions used', '5 / 20 次代码补全已使用'],
+  ['2 / 100 premium requests used', '2 / 100 次高级请求已使用'],
+  ['1 / 50 session limits used', '1 / 50 条会话限制已使用'],
+  ['4 / 50 weekly limits used', '4 / 50 条每周限制已使用'],
+  ['1,000 / 10,000 AI credits used', '1,000 / 10,000 AI 积分已使用'],
 ]
 
 test('规则正确翻译已知动态字符串', () => {
@@ -106,6 +122,9 @@ const negatives = [
   'You can try again soon.',
   'This submodule changed its commit from a to b.',
   'This is a submodule based on the repository github/desktop.',
+  '3 / 10 items used',
+  'resets in 5 minutes',
+  'Primary remote repository URL',
 ]
 
 test('规则不误匹配无关字符串', () => {

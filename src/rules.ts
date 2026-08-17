@@ -271,5 +271,80 @@ export function getRules(): Rule[] {
       flags: '',
       replacement: '可在 $1 之后重试。',
     },
+    {
+      pattern: '^\\(resets in (\\d+) minutes?\\)$',
+      flags: '',
+      replacement: '（$1 分钟后重置）',
+    },
+    {
+      pattern: '^\\(resets in (\\d+) hours?\\)$',
+      flags: '',
+      replacement: '（$1 小时后重置）',
+    },
+    {
+      pattern: '^\\(resets in (\\d+) days?\\)$',
+      flags: '',
+      replacement: '（$1 天后重置）',
+    },
+    {
+      pattern: '^Pull (.+) with rebase$',
+      flags: '',
+      replacement: '以变基方式拉取 $1',
+    },
+    {
+      pattern: '^Pull (.+)$',
+      flags: '',
+      replacement: '拉取 $1',
+    },
+    {
+      pattern: '^Push (.+)$',
+      flags: '',
+      replacement: '推送 $1',
+    },
+    {
+      pattern: '^AI credits per ([\\d,.]+) tokens$',
+      flags: '',
+      replacement: '每 $1 个 token 的 AI 积分',
+    },
+    {
+      pattern: '^Primary remote repository \\((.+)\\) URL$',
+      flags: '',
+      replacement: '主远程仓库（$1）URL',
+    },
+    {
+      pattern: '^Primary Remote Repository \\((.+)\\) URL$',
+      flags: '',
+      replacement: '主远程仓库（$1）URL',
+    },
+    {
+      pattern: '^([\\d,.]+) / ([\\d,.]+) chat messages used$',
+      flags: '',
+      replacement: '$1 / $2 条聊天消息已使用',
+    },
+    {
+      pattern: '^([\\d,.]+) / ([\\d,.]+) code completions used$',
+      flags: '',
+      replacement: '$1 / $2 次代码补全已使用',
+    },
+    {
+      pattern: '^([\\d,.]+) / ([\\d,.]+) premium requests used$',
+      flags: '',
+      replacement: '$1 / $2 次高级请求已使用',
+    },
+    {
+      pattern: '^([\\d,.]+) / ([\\d,.]+) session limits used$',
+      flags: '',
+      replacement: '$1 / $2 条会话限制已使用',
+    },
+    {
+      pattern: '^([\\d,.]+) / ([\\d,.]+) weekly limits used$',
+      flags: '',
+      replacement: '$1 / $2 条每周限制已使用',
+    },
+    {
+      pattern: '^([\\d,.]+) / ([\\d,.]+) AI credits used$',
+      flags: '',
+      replacement: '$1 / $2 AI 积分已使用',
+    },
   ]
 }
