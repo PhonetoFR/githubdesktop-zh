@@ -17,7 +17,7 @@ Windows 图形化 GitHub Desktop 简体中文补丁工具。默认发行形式�
 
 | 维度 | 数值 |
 |---|---|
-| 字典条目 `dict/zh-CN.json` | 1237(已清理 90 条不可达片段 key) |
+| 字典条目 `dict/zh-CN.json` | 1373(batch 5 新增 136 条菜单/偏好/Copilot/工具栏文案) |
 | 动态规则 `src/rules.ts` | 53 |
 | 单元测试 `test/*.test.cjs` | 35(全过) |
 | 版本 | 1.1.3 |
@@ -109,6 +109,7 @@ console.log('batch:',batch.length,'internalDup:',dup,'collide:',col);"
 ### 已挖过的组件(勿重复)
 changes、diff(文本)、history、branches、merge-conflicts、multi-commit-operation、clone-repository、add-repository、create-branch、create-tag、delete-branch、delete-tag、discard-changes、no-repositories、banners、check-runs、lfs、forks、local-changes-overwritten、hook-failed、missing-repository、install-git、invalidated-token、generic-git-auth、cli-installed、change-repository-alias、choose-fork-settings、cloning-repository、commit-progress、commit-message、about、acknowledgements、account-picker、editor、stashing、rebase、cherry-pick、pull-request-preview、copilot、move-to-applications-folder、cli-action、image-diffs。
 batch 4 已挖:autocompletion、keyboard-shortcut(纯键名无文案)、notifications、app-error(含 lib/copilot-error 文案)、checkout、diff/syntax-highlighting、submodule-diff、open-pull-request(pull-request-preview 在 development 已改名)。
+batch 5 已挖:app-menu(build-default-menu.ts 全部菜单标签,补齐 macOS Title Case)、preferences、copilot(用户设置/积分/快照)、repository-settings、toolbar、undo、app.tsx、lib、dialog。
 
 ### 经验教训(batch 4 挖矿沉淀)
 - **跨内联元素的句子不可达**:如 `Would you like to retry cloning <Ref>{x}</Ref>?`、`This submodule changed its commit from <Ref/> to <Ref/>.`、`This file uses '{x}' line endings, but <LinkButton/> to '{y}'...`。这类只取完整句的规则/字典均无法命中,直接放弃,除非文本节点本身完整。
@@ -117,8 +118,10 @@ batch 4 已挖:autocompletion、keyboard-shortcut(纯键名无文案)、notifica
 - **菜单标签用 `stripAccessKey` 后的形态收字典**(如 `View pull request on GitHub`),`build-default-menu.ts` 可用正则批量提取 `label:` 并 diff 现有字典。
 - 上游代码搜索:`gh api "search/code?q=...repo:desktop/desktop"` 可快速验证字符串是否真实存在(30 req/min)。
 
-### 仍可挖(batch 5 候选)
-`app-menu`(全部上下文菜单标签批量 diff)、`preferences`、`repository-settings`、`app`(About/更新横幅遗漏项)、`lib`(dialog 通用文案)、`toolbar`、`undo-redo` 提示。
+### 仍可挖(batch 6 候选)
+`publish-repository`、`push-needs-pull`、`repository-rules`、`suggested-actions`、`welcome`、`terms-and-conditions`、`installing-update`、`release-notes`、`saml-reauth-required`、`untrusted-certificate`、`upstream-already-exists`、`workflow-push-rejected`、`generate-commit-message`、`worktrees`、`reset`、`secret-scanning`、`remove-repository`、`rename-branch`。
+
+batch 5 发现的动态规则候选(留待 rules 扩充):`resets in N minutes/hours/days`、`N / M chat messages used`、`AI credits per N tokens`、`Primary remote repository (X) URL`、`Fetch/Pull/Push X`、`Open in Shell`。
 
 ## 8. 如何扩动态规则(`src/rules.ts`)
 
@@ -148,11 +151,12 @@ batch 4 已挖:autocompletion、keyboard-shortcut(纯键名无文案)、notifica
 - 字典片段 key 清理(1300→1210,删 90 条不可达片段)
 - 字典 batch 4(1210→1237,copilot-error/diff/merge-status/菜单标签)
 - 动态规则 batch 4(43→53,diff 搜索/create-branch/copilot 重试)
-- 字典 1237 条、动态规则 53 条、测试 35 项
+- 字典 batch 5(1237→1373,app-menu/preferences/copilot/toolbar/repository-settings/undo/lib/dialog)
+- 字典 1373 条、动态规则 53 条、测试 35 项
 
 ### 安全可做(纯数据/增量,本机可验证)
-- 字典 batch 5(见第 7 节候选)
-- 补 rules 新正例 + 对应测试
+- 字典 batch 6(见第 7 节候选)
+- 补 rules 新正例 + 对应测试(见第 7 节 batch 5 发现的动态规则候选)
 
 ### 有风险(改注入运行时,本机无法验证,需 Windows 实测)
 - **菜单覆盖 `new MenuItem()`**(`src/menu-patch.ts`):现只劫持 `Menu.buildFromTemplate`。补 `MenuItem` 构造器 hook 可覆盖右键菜单,但写错会崩整个应用菜单。注意 `role`-based 菜单项(undo/redo/copy)无 `label` 字段,由 OS 本地化,不要碰。
@@ -166,7 +170,7 @@ batch 4 已挖:autocompletion、keyboard-shortcut(纯键名无文案)、notifica
 
 ## 11. 环境与认证
 
-- 当前开发机:Linux(构建/测试/lint 可完整运行);Windows 11 用于 GUI/补丁回归实测(已装 GitHub Desktop)。
+- 开发机:Windows 11(已装 GitHub Desktop,可做构建/测试/GUI/补丁回归实测)。
 - `gh auth` 已登录账号 `PhonetoFR`,Git 协议为 HTTPS。
 - GUI portable 已在 Windows 本机实测;每次改 IPC、打包路径或 patcher 后仍需重复汉化/还原闭环。
 
