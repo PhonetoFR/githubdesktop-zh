@@ -1,6 +1,6 @@
 {
   "name": "github-desktop-zh",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "GitHub Desktop 汉化补丁工具 - 一键汉化，支持还原",
   "main": "dist/gui-main.js",
   "bin": {
@@ -51,7 +51,10 @@
     "productName": "GitHub Desktop 汉化补丁",
     "asar": true,
     "compression": "normal",
-    "electronLanguages": ["en-US", "zh-CN"],
+    "electronLanguages": [
+      "en-US",
+      "zh-CN"
+    ],
     "afterPack": "./scripts/after-pack.cjs",
     "directories": {
       "output": "build",
