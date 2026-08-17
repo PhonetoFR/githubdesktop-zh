@@ -11,17 +11,17 @@ Windows 图形化 GitHub Desktop 简体中文补丁工具。默认发行形式�
 - 仓库:`https://github.com/PhonetoFR/githubdesktop-zh`
 - 默认分支:`master`
 - 许可:MIT
-- 当前版本:`1.1.3`(正式版)
+- 当前版本:`1.1.4`(正式版)
 
 ## 2. 当前状态(2026-07-25 截止)
 
 | 维度 | 数值 |
 |---|---|
 | 字典条目 `dict/zh-CN.json` | 1373(batch 5 新增 136 条菜单/偏好/Copilot/工具栏文案) |
-| 动态规则 `src/rules.ts` | 53 |
+| 动态规则 `src/rules.ts` | 68 |
 | 单元测试 `test/*.test.cjs` | 35(全过) |
-| 版本 | 1.1.3 |
-| 默认产物 | `github-desktop-zh-1.1.3-portable.exe`(约 69MB,1.1.1 起精简) |
+| 版本 | 1.1.4 |
+| 默认产物 | `github-desktop-zh-1.1.4-portable.exe`(约 78MB) |
 | 远端 origin | `https://github.com/PhonetoFR/githubdesktop-zh.git` |
 
 GUI 已在 Windows 上完成 portable 启动、状态读取、汉化和还原闭环实测。测试目标为 GitHub Desktop 3.6.3,还原后源文件与 `.bak` 一致且 `zh/runtime.js` 已删除。
@@ -121,7 +121,7 @@ batch 5 已挖:app-menu(build-default-menu.ts 全部菜单标签,补齐 macOS Ti
 ### 仍可挖(batch 6 候选)
 `publish-repository`、`push-needs-pull`、`repository-rules`、`suggested-actions`、`welcome`、`terms-and-conditions`、`installing-update`、`release-notes`、`saml-reauth-required`、`untrusted-certificate`、`upstream-already-exists`、`workflow-push-rejected`、`generate-commit-message`、`worktrees`、`reset`、`secret-scanning`、`remove-repository`、`rename-branch`。
 
-batch 5 发现的动态规则候选(留待 rules 扩充):`resets in N minutes/hours/days`、`N / M chat messages used`、`AI credits per N tokens`、`Primary remote repository (X) URL`、`Fetch/Pull/Push X`、`Open in Shell`。
+batch 5 发现的动态规则候选已全部实现为规则(53→68):`resets in N minutes/hours/days`、`N / M chat messages used`(按配额类型分条)、`AI credits per N tokens`、`Primary remote repository (X) URL`(双大小写)、`Pull/Push <remote>`、`Pull <remote> with rebase`(`Fetch X`/`Force push X`/`Open in X` 原已有规则)。
 
 ## 8. 如何扩动态规则(`src/rules.ts`)
 
@@ -152,11 +152,12 @@ batch 5 发现的动态规则候选(留待 rules 扩充):`resets in N minutes/ho
 - 字典 batch 4(1210→1237,copilot-error/diff/merge-status/菜单标签)
 - 动态规则 batch 4(43→53,diff 搜索/create-branch/copilot 重试)
 - 字典 batch 5(1237→1373,app-menu/preferences/copilot/toolbar/repository-settings/undo/lib/dialog)
-- 字典 1373 条、动态规则 53 条、测试 35 项
+- 动态规则 batch 5(53→68,copilot 配额重置/用量、Pull/Push 远端名、远程仓库 URL)
+- 字典 1373 条、动态规则 68 条、测试 35 项
 
 ### 安全可做(纯数据/增量,本机可验证)
 - 字典 batch 6(见第 7 节候选)
-- 补 rules 新正例 + 对应测试(见第 7 节 batch 5 发现的动态规则候选)
+- 补 rules 新正例 + 对应测试
 
 ### 有风险(改注入运行时,本机无法验证,需 Windows 实测)
 - **菜单覆盖 `new MenuItem()`**(`src/menu-patch.ts`):现只劫持 `Menu.buildFromTemplate`。补 `MenuItem` 构造器 hook 可覆盖右键菜单,但写错会崩整个应用菜单。注意 `role`-based 菜单项(undo/redo/copy)无 `label` 字段,由 OS 本地化,不要碰。
@@ -165,7 +166,7 @@ batch 5 发现的动态规则候选(留待 rules 扩充):`resets in N minutes/ho
 - **跨平台**:GUI 和安装定位当前明确只支持 Windows x64。
 
 ### 已知小瑕疵(可选修)
-- Electron portable 约 69MB,仍大于旧 pkg CLI 的约 38MB。
+- Electron portable 约 78MB,仍大于旧 pkg CLI 的约 38MB。
 - `pkg@5.8.1` 仅用于可选 CLI,存在无上游修复的本地权限提升 advisory;GUI 生产依赖审计为 0。
 
 ## 11. 环境与认证
