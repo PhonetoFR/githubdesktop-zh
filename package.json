@@ -55,7 +55,6 @@
       "en-US",
       "zh-CN"
     ],
-    "afterPack": "./scripts/after-pack.cjs",
     "directories": {
       "output": "build",
       "buildResources": "build-resources"
