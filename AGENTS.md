@@ -68,7 +68,7 @@ npm run lint       # eslint(需先 npm install;node_modules 未装时不可用)
 - **CLI 才需要 `CI=true`**:pkg 5.8.1 在新版 Node 上可能触发进度条断言,用 `CI=true npm run package:cli`。
 - **测试先 build**:`test/*.test.cjs` require `../dist/`,所以 `npm test` 内含 `npm run build`。直接 `node --test` 不行。
 - **构建自动清理**:`npm run build` 先删除 `dist`;打包前删除 `build`,避免旧文件进入产物或被误上传。
-- **产物未代码签名**:当前 portable EXE 的 Authenticode 状态为 `NotSigned`,Windows 可能显示 SmartScreen 提示。
+- **产物为自签名**:构建时用自签名证书(CN=PhonetoFR GitHub Desktop Zh)签名,证书不受 CA 信任,Windows SmartScreen 仍会提示。
 
 ## 5. 翻译运行时语义(改字典/规则必读)
 

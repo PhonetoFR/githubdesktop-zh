@@ -23,7 +23,3 @@ export function validateDict(dict: Dict): void {
     }
   }
 }
-
-export function dictStats(dict: Dict): { total: number; menu: number; ui: number } {
-  return { total: Object.keys(dict).length, menu: 0, ui: 0 }
-}
