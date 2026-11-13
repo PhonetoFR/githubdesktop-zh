@@ -11,20 +11,20 @@ Windows 图形化 GitHub Desktop 简体中文补丁工具。默认发行形式�
 - 仓库:`https://github.com/PhonetoFR/githubdesktop-zh`
 - 默认分支:`master`
 - 许可:MIT
-- 当前版本:`1.1.5`(正式版)
+- 当前版本:`1.1.6`(正式版)
 
-## 2. 当前状态(2026-07-25 截止)
+## 2. 当前状态(2026-11-13 截止)
 
 | 维度 | 数值 |
 |---|---|
-| 字典条目 `dict/zh-CN.json` | 1373(batch 5 新增 136 条菜单/偏好/Copilot/工具栏文案) |
-| 动态规则 `src/rules.ts` | 68 |
+| 字典条目 `dict/zh-CN.json` | 1476(batch 6 净增 103 条发布/关于/多选右键/Copilot 冲突/教程/无障碍文案) |
+| 动态规则 `src/rules.ts` | 82 |
 | 单元测试 `test/*.test.cjs` | 35(全过) |
-| 版本 | 1.1.5 |
-| 默认产物 | `github-desktop-zh-1.1.5-portable.exe`(约 78MB) |
+| 版本 | 1.1.6 |
+| 默认产物 | `github-desktop-zh-1.1.6-portable.exe`(约 78MB) |
 | 远端 origin | `https://github.com/PhonetoFR/githubdesktop-zh.git` |
 
-GUI 已在 Windows 上完成 portable 启动、状态读取、汉化和还原闭环实测。测试目标为 GitHub Desktop 3.6.3,还原后源文件与 `.bak` 一致且 `zh/runtime.js` 已删除。
+GUI 已在 Windows 上完成 portable 启动、状态读取、汉化和还原闭环实测。测试目标为 GitHub Desktop 3.6.4,3.6.3/3.6.4 的 renderer/main 字符串集合一致,仅 User-Agent 版本号不同。
 
 ## 3. 架构(文件地图)
 
@@ -110,6 +110,7 @@ console.log('batch:',batch.length,'internalDup:',dup,'collide:',col);"
 changes、diff(文本)、history、branches、merge-conflicts、multi-commit-operation、clone-repository、add-repository、create-branch、create-tag、delete-branch、delete-tag、discard-changes、no-repositories、banners、check-runs、lfs、forks、local-changes-overwritten、hook-failed、missing-repository、install-git、invalidated-token、generic-git-auth、cli-installed、change-repository-alias、choose-fork-settings、cloning-repository、commit-progress、commit-message、about、acknowledgements、account-picker、editor、stashing、rebase、cherry-pick、pull-request-preview、copilot、move-to-applications-folder、cli-action、image-diffs。
 batch 4 已挖:autocompletion、keyboard-shortcut(纯键名无文案)、notifications、app-error(含 lib/copilot-error 文案)、checkout、diff/syntax-highlighting、submodule-diff、open-pull-request(pull-request-preview 在 development 已改名)。
 batch 5 已挖:app-menu(build-default-menu.ts 全部菜单标签,补齐 macOS Title Case)、preferences、copilot(用户设置/积分/快照)、repository-settings、toolbar、undo、app.tsx、lib、dialog。
+batch 6 已挖:release-3.6.4 全量静态扫描(关于/偏好、发布仓库、多选文件右键、Copilot 冲突解决、教程步骤、无障碍标签),并修正 3 处弯引号死键与 1 处标点错误、删除 1 条会产生残缺译文的 `Pull requests in` 片段键。
 
 ### 经验教训(batch 4 挖矿沉淀)
 - **跨内联元素的句子不可达**:如 `Would you like to retry cloning <Ref>{x}</Ref>?`、`This submodule changed its commit from <Ref/> to <Ref/>.`、`This file uses '{x}' line endings, but <LinkButton/> to '{y}'...`。这类只取完整句的规则/字典均无法命中,直接放弃,除非文本节点本身完整。
@@ -118,16 +119,19 @@ batch 5 已挖:app-menu(build-default-menu.ts 全部菜单标签,补齐 macOS Ti
 - **菜单标签用 `stripAccessKey` 后的形态收字典**(如 `View pull request on GitHub`),`build-default-menu.ts` 可用正则批量提取 `label:` 并 diff 现有字典。
 - 上游代码搜索:`gh api "search/code?q=...repo:desktop/desktop"` 可快速验证字符串是否真实存在(30 req/min)。
 
-### 仍可挖(batch 6 候选)
+### 仍可挖(batch 7 候选)
 `publish-repository`、`push-needs-pull`、`repository-rules`、`suggested-actions`、`welcome`、`terms-and-conditions`、`installing-update`、`release-notes`、`saml-reauth-required`、`untrusted-certificate`、`upstream-already-exists`、`workflow-push-rejected`、`generate-commit-message`、`worktrees`、`reset`、`secret-scanning`、`remove-repository`、`rename-branch`。
 
 batch 5 发现的动态规则候选已全部实现为规则(53→68):`resets in N minutes/hours/days`、`N / M chat messages used`(按配额类型分条)、`AI credits per N tokens`、`Primary remote repository (X) URL`(双大小写)、`Pull/Push <remote>`、`Pull <remote> with rebase`(`Fetch X`/`Force push X`/`Open in X` 原已有规则)。
 
+batch 6 新增规则(68→82):`N files selected`、`Discard N selected changes`、`Cherry-pick/Squash/Reorder N commits…`、`Ignore N selected files/all X files (add to .gitignore)`、`N conflicted files`、`N pull requests found`、`Pull requests in X`、`Choose a branch to merge into X`、`N local commits`。多选右键菜单标签同时依赖 `menu-patch` 内嵌规则。
+
 ## 8. 如何扩动态规则(`src/rules.ts`)
 
 - 每条 `{pattern, flags, replacement}`,pattern 用 `^…$` 锚定,replacement 用 `$1/$2` 引用捕获组。
-- **顺序重要**:catch-all 兜底规则(如 `^Last fetched (.+)$`)必须排在具体规则(分钟/小时/天)之后,否则吃掉所有。
+- **顺序重要**:catch-all 兜底规则(如 `^Last fetched (.+)$`)必须排在具体规则(分钟/小时/天)之后,否则吃掉所有。同理 `^Pull requests in (.+)$` 必须排在 `^Pull (.+)$` 之前。
 - 含变量插值的句子(`Pushed {n} commits`)用规则,不用字典。
+- **菜单动态标签也走规则**:`buildMenuPatch(dict, rules)` 会把规则嵌入 `main.js`;改签名或注入逻辑后必须验证 `Menu.buildFromTemplate` 的 `Discard N selected changes` 等标签。`src/rules.ts` 中新增规则会自动对运行时与菜单同时生效。
 - 加规则后跑 `npm test`,新增正例加进 `test/rules.test.cjs`。
 
 ## 9. 发布流程(Release)
@@ -153,10 +157,13 @@ batch 5 发现的动态规则候选已全部实现为规则(53→68):`resets in 
 - 动态规则 batch 4(43→53,diff 搜索/create-branch/copilot 重试)
 - 字典 batch 5(1237→1373,app-menu/preferences/copilot/toolbar/repository-settings/undo/lib/dialog)
 - 动态规则 batch 5(53→68,copilot 配额重置/用量、Pull/Push 远端名、远程仓库 URL)
-- 字典 1373 条、动态规则 68 条、测试 35 项
+- 字典 batch 6(1373→1476,release-3.6.4 静态文案/多选右键/Copilot 冲突/教程/无障碍,清理 4 条死键)
+- 动态规则 batch 6(68→82,多选文件/提交操作/忽略文件/PR 列表/本地提交)
+- 菜单补丁支持动态规则(`buildMenuPatch(dict, rules)`,右键菜单多选标签可翻译)
+- 字典 1476 条、动态规则 82 条、测试 35 项
 
 ### 安全可做(纯数据/增量,本机可验证)
-- 字典 batch 6(见第 7 节候选)
+- 字典 batch 7(见第 7 节候选)
 - 补 rules 新正例 + 对应测试
 
 ### 有风险(改注入运行时,本机无法验证,需 Windows 实测)

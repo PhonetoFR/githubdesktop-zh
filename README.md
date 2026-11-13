@@ -64,7 +64,7 @@ GUI 使用 Electron + electron-builder `portable` 目标，产物为单文件免
 
 ## 贡献
 
-翻译表位于 `dict/zh-CN.json`（1300 条），动态规则在 `src/rules.ts`（43 条）。
+翻译表位于 `dict/zh-CN.json`（1476 条），动态规则在 `src/rules.ts`（82 条）。
 
 | 组件 | 文件 |
 |------|------|
