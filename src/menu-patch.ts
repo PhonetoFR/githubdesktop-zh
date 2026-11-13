@@ -1,14 +1,21 @@
 import { Dict } from './dict'
+import { Rule } from './rules'
 
 export const PATCH_START = '/*ZH-PATCH*/'
 export const PATCH_END = '/*END-ZH-PATCH*/'
 
-export function buildMenuPatch(dict: Dict): string {
+export function buildMenuPatch(dict: Dict, rules: Rule[] = []): string {
   const dictJson = JSON.stringify(dict)
+  const rulesJson = JSON.stringify(
+    rules.map(r => ({ pattern: r.pattern, flags: r.flags, replacement: r.replacement }))
+  )
   return `${PATCH_START}
 (() => {
   'use strict';
   var DICT = ${dictJson};
+  var RULES = ${rulesJson}.map(function (r) {
+    return { pattern: new RegExp(r.pattern, r.flags), replacement: r.replacement };
+  });
   var CJK = /[\\u4e00-\\u9fff]/;
   function stripAccessKey(label) {
     if (!label) return label;
@@ -20,6 +27,12 @@ export function buildMenuPatch(dict: Dict): string {
     if (CJK.test(stripped)) return stripped;
     if (Object.prototype.hasOwnProperty.call(DICT, stripped)) {
       return DICT[stripped];
+    }
+    for (var i = 0; i < RULES.length; i++) {
+      var r = RULES[i];
+      if (r.pattern.test(stripped)) {
+        return stripped.replace(r.pattern, r.replacement);
+      }
     }
     return stripped;
   }

@@ -103,6 +103,24 @@ const positives = [
   ['1 / 50 session limits used', '1 / 50 条会话限制已使用'],
   ['4 / 50 weekly limits used', '4 / 50 条每周限制已使用'],
   ['1,000 / 10,000 AI credits used', '1,000 / 10,000 AI 积分已使用'],
+  ['5 files selected', '5 个文件已选择'],
+  ['1 file selected', '1 个文件已选择'],
+  ['Discard 3 selected changes', '放弃 3 项选定的更改'],
+  ['Discard 3 selected changes…', '放弃 3 项选定的更改…'],
+  ['Cherry-pick 3 commits…', '挑拣 3 个提交…'],
+  ['Squash 3 commits…', '压缩 3 个提交…'],
+  ['Squash 3 Commits', '压缩 3 个提交'],
+  ['Reorder 3 commits…', '重新排序 3 个提交…'],
+  ['Ignore 3 selected files (add to .gitignore)', '忽略 3 个选定文件（添加到 .gitignore）'],
+  ['Ignore all js files (add to .gitignore)', '忽略所有 js 文件（添加到 .gitignore）'],
+  ['3 conflicted files', '3 个冲突文件'],
+  ['1 conflicted file', '1 个冲突文件'],
+  ['5 pull requests found', '找到 5 个拉取请求'],
+  ['1 pull request found', '找到 1 个拉取请求'],
+  ['Pull requests in desktop/desktop', 'desktop/desktop 中的拉取请求'],
+  ['Choose a branch to merge into main', '选择要合并到 main 的分支'],
+  ['1,234 local commits', '1,234 个本地提交'],
+  ['1 local commit', '1 个本地提交'],
 ]
 
 test('规则正确翻译已知动态字符串', () => {
@@ -125,6 +143,11 @@ const negatives = [
   '3 / 10 items used',
   'resets in 5 minutes',
   'Primary remote repository URL',
+  '5 selected files',
+  'Ignore selected files (add to .gitignore)',
+  'Ignore all files (add to .gitignore)',
+  '2 files selected by user',
+  'Squash 3 commits',
 ]
 
 test('规则不误匹配无关字符串', () => {

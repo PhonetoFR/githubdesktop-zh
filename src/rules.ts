@@ -287,6 +287,11 @@ export function getRules(): Rule[] {
       replacement: '（$1 天后重置）',
     },
     {
+      pattern: '^Pull requests in (.+)$',
+      flags: '',
+      replacement: '$1 中的拉取请求',
+    },
+    {
       pattern: '^Pull (.+) with rebase$',
       flags: '',
       replacement: '以变基方式拉取 $1',
@@ -345,6 +350,71 @@ export function getRules(): Rule[] {
       pattern: '^([\\d,.]+) / ([\\d,.]+) AI credits used$',
       flags: '',
       replacement: '$1 / $2 AI 积分已使用',
+    },
+    {
+      pattern: '^(\\d+) files? selected$',
+      flags: '',
+      replacement: '$1 个文件已选择',
+    },
+    {
+      pattern: '^Discard (\\d+) selected changes…$',
+      flags: '',
+      replacement: '放弃 $1 项选定的更改…',
+    },
+    {
+      pattern: '^Discard (\\d+) selected changes$',
+      flags: '',
+      replacement: '放弃 $1 项选定的更改',
+    },
+    {
+      pattern: '^Cherry-pick (\\d+) commits…$',
+      flags: '',
+      replacement: '挑拣 $1 个提交…',
+    },
+    {
+      pattern: '^Squash (\\d+) commits…$',
+      flags: '',
+      replacement: '压缩 $1 个提交…',
+    },
+    {
+      pattern: '^Squash (\\d+) Commits$',
+      flags: '',
+      replacement: '压缩 $1 个提交',
+    },
+    {
+      pattern: '^Reorder (\\d+) commits…$',
+      flags: '',
+      replacement: '重新排序 $1 个提交…',
+    },
+    {
+      pattern: '^Ignore (\\d+) selected files \\(add to \\.gitignore\\)$',
+      flags: '',
+      replacement: '忽略 $1 个选定文件（添加到 .gitignore）',
+    },
+    {
+      pattern: '^Ignore all (.+) files \\(add to \\.gitignore\\)$',
+      flags: '',
+      replacement: '忽略所有 $1 文件（添加到 .gitignore）',
+    },
+    {
+      pattern: '^(\\d+) conflicted files?$',
+      flags: '',
+      replacement: '$1 个冲突文件',
+    },
+    {
+      pattern: '^(\\d+) pull requests? found$',
+      flags: '',
+      replacement: '找到 $1 个拉取请求',
+    },
+    {
+      pattern: '^Choose a branch to merge into (.+)$',
+      flags: '',
+      replacement: '选择要合并到 $1 的分支',
+    },
+    {
+      pattern: '^([\\d,.]+) local commits?$',
+      flags: '',
+      replacement: '$1 个本地提交',
     },
   ]
 }

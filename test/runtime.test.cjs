@@ -26,15 +26,16 @@ test('buildRuntime 不泄漏未转义的特殊字符导致语法错误', () => {
 })
 
 test('buildMenuPatch 生成合法 JS 并带标记', () => {
-  const code = buildMenuPatch(loadDict())
+  const code = buildMenuPatch(loadDict(), getRules())
   assert.strictEqual(typeof code, 'string')
   assert.ok(code.startsWith(PATCH_START), '缺少起始标记')
   assert.ok(code.includes(PATCH_END), '缺少结束标记')
   assert.doesNotThrow(() => new Function(code), 'menu-patch 必须是合法 JS')
 })
 
-test('buildMenuPatch 内嵌字典', () => {
-  const code = buildMenuPatch(loadDict())
+test('buildMenuPatch 内嵌字典与规则', () => {
+  const code = buildMenuPatch(loadDict(), getRules())
   assert.ok(code.includes('DICT ='), 'menu-patch 未嵌入 DICT')
+  assert.ok(code.includes('RULES ='), 'menu-patch 未嵌入 RULES')
   assert.ok(code.includes('buildFromTemplate'), '未劫持 buildFromTemplate')
 })

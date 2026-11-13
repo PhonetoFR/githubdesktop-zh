@@ -198,8 +198,8 @@ function buildPatchedIndex(content: string): string {
   return content.slice(0, insertPos) + INDEX_MARKER + content.slice(insertPos)
 }
 
-function buildPatchedMain(content: string, dict: Dict): string {
-  return buildMenuPatch(dict) + '\n' + stripOldMainPatch(content)
+function buildPatchedMain(content: string, dict: Dict, rules: Rule[]): string {
+  return buildMenuPatch(dict, rules) + '\n' + stripOldMainPatch(content)
 }
 
 function assertRuntimeCanBeWritten(install: AppInstall): void {
@@ -398,7 +398,7 @@ export function patch(install: AppInstall, dict: Dict, rules: Rule[]): PatchResu
   }
 
   const index = buildPatchedIndex(fs.readFileSync(install.indexHtml, 'utf8'))
-  const main = buildPatchedMain(fs.readFileSync(install.mainJs, 'utf8'), dict)
+  const main = buildPatchedMain(fs.readFileSync(install.mainJs, 'utf8'), dict, rules)
   const runtime = buildRuntime(dict, rules)
   assertRuntimeCanBeWritten(install)
   const backupCreated = ensureBackup(install)
