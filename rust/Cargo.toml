@@ -1,0 +1,30 @@
+[package]
+name = "github-desktop-zh"
+version = "1.2.0"
+edition = "2024"
+description = "GitHub Desktop 简体中文汉化补丁（Rune 原生版）"
+license = "MIT"
+
+[dependencies]
+rune = { git = "https://github.com/anomalyco/rune", rev = "4970cffe6a4e90c7d613796be8ce39eb3dcb281b", default-features = false, features = ["accessibility", "embedded-fonts"] }
+rune-kit = { git = "https://github.com/anomalyco/rune", rev = "4970cffe6a4e90c7d613796be8ce39eb3dcb281b", default-features = false }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[features]
+default = []
+# Headless snapshots/tree dumps for tests and CI.
+headless = ["rune/tooling"]
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+panic = "abort"
+
+[patch.crates-io]
+wgpu-hal = { path = "vendor/wgpu-hal" }
+winit = { path = "vendor/winit" }
+parley_engine = { path = "vendor/parley_engine" }
+accesskit_windows = { path = "vendor/accesskit_windows" }

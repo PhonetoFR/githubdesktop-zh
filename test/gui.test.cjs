@@ -4,65 +4,70 @@ const fs = require('node:fs')
 const path = require('node:path')
 
 const root = path.join(__dirname, '..')
-const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
+const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
+const cargo = fs.readFileSync(path.join(root, 'rust', 'Cargo.toml'), 'utf8')
+const ui = fs.readFileSync(path.join(root, 'rust', 'src', 'ui.rs'), 'utf8')
 
-test('默认打包目标是单文件 portable exe，不包含安装器目标', () => {
-  assert.equal(packageJson.main, 'dist/gui-main.js')
-  assert.equal(packageJson.scripts.package, 'npm run package:gui')
-  const targets = packageJson.build.win.target.map(target => target.target)
-  assert.deepEqual(targets, ['portable'])
-  assert.match(packageJson.build.win.artifactName, /portable\.\$\{ext\}$/)
-  assert.ok(!targets.some(target => ['nsis', 'msi', 'msi-wrapped'].includes(target)))
-  assert.match(packageJson.scripts.build, /clean:dist/)
-  assert.match(packageJson.scripts['package:gui'], /clean:package/)
+test('Rune 是默认发行目标', () => {
+  assert.equal(pkg.scripts.package, 'npm run package:rune')
+  assert.match(pkg.scripts['package:rune'], /build:rune/)
+  assert.match(pkg.scripts['package:rune'], /package-rune\.cjs/)
+  assert.match(pkg.scripts['build:rune'], /cargo\.cjs build --release/)
+  assert.equal(pkg.devDependencies.electron, undefined)
+  assert.equal(pkg.devDependencies['electron-builder'], undefined)
 })
 
-test('GUI 静态资源被打包且页面启用严格 CSP', () => {
-  const files = packageJson.build.files
-  assert.ok(files.includes('gui/**/*'))
-  assert.ok(files.includes('dist/**/*.js'))
-
-  const html = fs.readFileSync(path.join(root, 'gui', 'index.html'), 'utf8')
-  assert.match(html, /Content-Security-Policy/)
-  assert.match(html, /script-src 'self'/)
-  assert.match(html, /object-src 'none'/)
-  assert.doesNotMatch(html, /<script(?![^>]*\bsrc=)/)
+test('Rust 版本与 Node 版本一致', () => {
+  const version = /^version\s*=\s*"([^"]+)"/m.exec(cargo)
+  assert.ok(version, 'Cargo.toml 缺少版本')
+  assert.equal(version[1], pkg.version)
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(root, 'rust', 'assets', 'manifest.json'), 'utf8')
+  )
+  assert.equal(manifest.toolVersion, pkg.version)
 })
 
-test('Electron 窗口启用上下文隔离、沙箱并关闭 Node 集成', () => {
-  const main = fs.readFileSync(path.join(root, 'dist', 'gui-main.js'), 'utf8')
-  assert.match(main, /contextIsolation:\s*true/)
-  assert.match(main, /nodeIntegration:\s*false/)
-  assert.match(main, /sandbox:\s*true/)
-  assert.match(main, /titleBarStyle:\s*'hidden'/)
-  assert.match(main, /titleBarOverlay/)
-  assert.match(main, /setWindowOpenHandler/)
-  assert.match(main, /isTrustedSender/)
-
-  const preload = fs.readFileSync(path.join(root, 'dist', 'gui-preload.js'), 'utf8')
-  assert.match(preload, /exposeInMainWorld\('zhPatch'/)
-  assert.match(preload, /ipcRenderer\.invoke/)
+test('Rune 依赖固定到 dev rev 并带官方 patch', () => {
+  assert.match(cargo, /git = "https:\/\/github\.com\/anomalyco\/rune", rev = "[0-9a-f]{40}"/)
+  assert.match(cargo, /wgpu-hal = \{ path = "vendor\/wgpu-hal" \}/)
+  assert.match(cargo, /winit = \{ path = "vendor\/winit" \}/)
+  assert.match(cargo, /parley_engine = \{ path = "vendor\/parley_engine" \}/)
+  assert.match(cargo, /accesskit_windows = \{ path = "vendor\/accesskit_windows" \}/)
 })
 
-test('GUI 支持文字重排、减少动画和高对比度模式', () => {
-  const css = fs.readFileSync(path.join(root, 'gui', 'styles.css'), 'utf8')
-  assert.doesNotMatch(css, /body\s*\{[^}]*min-width/s)
-  assert.match(css, /prefers-reduced-motion:\s*reduce/)
-  assert.match(css, /forced-colors:\s*active/)
-  assert.match(css, /app-region:\s*drag/)
-  assert.match(css, /grid-template-columns:\s*minmax\(230px/)
-  assert.match(css, /body::-webkit-scrollbar/)
+test('界面使用 rune-kit 视觉组件', () => {
+  for (const name of ['Button', 'Select', 'Card', 'Badge', 'Spinner', 'IconButton']) {
+    assert.match(ui, new RegExp(`\\b${name}\\b`), `缺少 ${name}`)
+  }
+  assert.match(ui, /rune::App::new/)
+  assert.match(ui, /Titlebar::new/)
+  assert.match(ui, /single_instance/)
+  assert.match(ui, /window_drag/)
+  assert.match(ui, /chrome_insets/)
 })
 
-test('lint 脚本与配置已就绪', () => {
-  assert.ok(fs.existsSync(path.join(root, '.eslintrc.cjs')))
-  assert.ok(packageJson.devDependencies.eslint)
-  assert.ok(packageJson.devDependencies['@typescript-eslint/eslint-plugin'])
-  assert.match(packageJson.scripts.lint, /eslint/)
+test('Windows 资源包含图标与版本信息', () => {
+  const packager = fs.readFileSync(path.join(root, 'scripts', 'package-rune.cjs'), 'utf8')
+  assert.match(packager, /require\('rcedit'\)/)
+  assert.match(packager, /'file-version': pkg\.version/)
+  assert.match(packager, /version-string/)
+  assert.match(packager, /build-resources', 'icon\.ico/)
 })
 
-test('构建流程包含代码签名证书生成步骤', () => {
-  assert.ok(fs.existsSync(path.join(root, 'scripts', 'generate-cert.cjs')))
-  assert.match(packageJson.scripts['package:gui'], /generate:cert/)
-  assert.match(packageJson.scripts['package:gui'], /package-gui\.cjs/)
+test('Rust 翻译资产已生成且格式正确', () => {
+  const runtime = fs.readFileSync(path.join(root, 'rust', 'assets', 'runtime.js'), 'utf8')
+  const menu = fs.readFileSync(path.join(root, 'rust', 'assets', 'menu-patch.txt'), 'utf8')
+  assert.match(runtime, /MutationObserver/)
+  assert.ok(menu.startsWith('/*ZH-PATCH*/'))
+  assert.match(menu, /\/\*END-ZH-PATCH\*\//)
+  assert.ok(Buffer.byteLength(runtime) > 90_000)
+  assert.ok(Buffer.byteLength(menu) > 90_000)
+})
+
+test('Electron 入口与依赖已移除', () => {
+  assert.equal(fs.existsSync(path.join(root, 'gui')), false)
+  assert.equal(fs.existsSync(path.join(root, 'src', 'gui-main.ts')), false)
+  assert.equal(fs.existsSync(path.join(root, 'src', 'patcher.ts')), false)
+  assert.equal(pkg.main, undefined)
+  assert.equal(pkg.build, undefined)
 })

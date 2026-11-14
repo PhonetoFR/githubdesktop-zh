@@ -1,0 +1,163 @@
+diff --git a/src/auxil/dxgi/factory.rs b/src/auxil/dxgi/factory.rs
+index ac050bcd..6e3c74ef 100644
+--- a/src/auxil/dxgi/factory.rs
++++ b/src/auxil/dxgi/factory.rs
+@@ -9,7 +9,7 @@ use super::result::HResult as _;
+ 
+ // We can rely on the presence of DXGI 1.4 since D3D12 requires WDDM 2.0, Windows 10 (1507), and so does DXGI 1.4.
+ 
+-fn should_keep_adapter(adapter: &Dxgi::IDXGIAdapter1) -> bool {
++pub(crate) fn should_keep_adapter(adapter: &Dxgi::IDXGIAdapter1) -> bool {
+     let desc = unsafe { adapter.GetDesc1() }.unwrap();
+ 
+     // The Intel Haswell family of iGPUs had support for the D3D12 API but it was later
+diff --git a/src/dx12/instance.rs b/src/dx12/instance.rs
+index fdb63bcb..5f64a804 100644
+--- a/src/dx12/instance.rs
++++ b/src/dx12/instance.rs
+@@ -187,3 +187,37 @@ impl crate::Instance for super::Instance {
+             .collect()
+     }
+ }
++
++impl super::Instance {
++    /// Exposes one adapter the caller found through DXGI, as `enumerate_adapters` exposes each
++    /// one it lists, without creating a device on any other adapter or loading another adapter's
++    /// driver. `None` when the adapter is one `enumerate_adapters` skips or can't run D3D12.
++    ///
++    /// # Safety
++    ///
++    /// `adapter` must come from a DXGI factory in this process.
++    pub unsafe fn expose_adapter(
++        &self,
++        adapter: &Dxgi::IDXGIAdapter1,
++    ) -> Option<crate::ExposedAdapter<super::Api>> {
++        use windows::core::Interface as _;
++        if !auxil::dxgi::factory::should_keep_adapter(adapter) {
++            return None;
++        }
++        let raw = match adapter.cast::<Dxgi::IDXGIAdapter4>() {
++            Ok(adapter4) => auxil::dxgi::factory::DxgiAdapter::Adapter4(adapter4),
++            Err(_) => auxil::dxgi::factory::DxgiAdapter::Adapter3(adapter.cast().ok()?),
++        };
++        super::Adapter::expose(
++            raw,
++            &self.library,
++            &self.device_factory,
++            &self.dcomp_lib,
++            self.flags,
++            self.memory_budget_thresholds,
++            self.compiler_container.clone(),
++            self.options.clone(),
++            self.telemetry,
++        )
++    }
++}
+diff --git a/src/dx12/mod.rs b/src/dx12/mod.rs
+index 285d635..36e8b82 100644
+--- a/src/dx12/mod.rs
++++ b/src/dx12/mod.rs
+@@ -615,6 +615,8 @@ struct SwapChain {
+     present_mode: wgt::PresentMode,
+     format: wgt::TextureFormat,
+     size: wgt::Extent3d,
++    /// Rune: what the next present changed (Surface::set_present_rects); empty is all of it.
++    dirty: Vec<Foundation::RECT>,
+ }
+ 
+ enum SurfaceTarget {
+@@ -651,6 +653,15 @@ impl Surface {
+         Some(self.swap_chain.read().as_ref()?.raw.clone())
+     }
+ 
++    /// Rune: the only rectangles the next present changed, in the swap chain's pixels; the rest of
++    /// the buffer holds what the frame before showed. Cleared by the present.
++    pub fn set_present_rects(&self, rects: &[Foundation::RECT]) {
++        if let Some(sc) = self.swap_chain.write().as_mut() {
++            sc.dirty.clear();
++            sc.dirty.extend_from_slice(rects);
++        }
++    }
++
+     /// Returns the waitable handle associated with this swap chain, if any.
+     /// Handle is only valid while the swap chain is alive.
+     pub unsafe fn waitable_handle(&self) -> Option<Foundation::HANDLE> {
+@@ -1535,7 +1546,9 @@ impl crate::Surface for Surface {
+                     BufferUsage: Dxgi::DXGI_USAGE_RENDER_TARGET_OUTPUT,
+                     BufferCount: swap_chain_buffer,
+                     Scaling: Dxgi::DXGI_SCALING_STRETCH,
+-                    SwapEffect: Dxgi::DXGI_SWAP_EFFECT_FLIP_DISCARD,
++                    // Rune: presenting part of a frame (Surface::set_present_rects, Present1's dirty
++                    // rectangles) needs the sequential flip model; FLIP_DISCARD can't.
++                    SwapEffect: Dxgi::DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL,
+                     Flags: flags.0 as u32,
+                 };
+                 let swap_chain1 = match self.target {
+@@ -1702,6 +1715,7 @@ impl crate::Surface for Surface {
+             present_mode: config.present_mode,
+             format: config.format,
+             size: config.extent,
++            dirty: Vec::new(),
+         });
+ 
+         Ok(())
+@@ -1838,9 +1852,22 @@ impl crate::Queue for Queue {
+         };
+ 
+         profiling::scope!("IDXGISwapchain3::Present");
+-        unsafe { sc.raw.Present(interval, flags) }
+-            .ok()
+-            .into_device_result("Present")?;
++        let dirty = core::mem::take(&mut sc.dirty);
++        if dirty.is_empty() {
++            unsafe { sc.raw.Present(interval, flags) }
++                .ok()
++                .into_device_result("Present")?;
++        } else {
++            let params = Dxgi::DXGI_PRESENT_PARAMETERS {
++                DirtyRectsCount: dirty.len() as u32,
++                pDirtyRects: dirty.as_ptr().cast_mut(),
++                pScrollRect: core::ptr::null_mut(),
++                pScrollOffset: core::ptr::null_mut(),
++            };
++            unsafe { sc.raw.Present1(interval, flags, &params) }
++                .ok()
++                .into_device_result("Present1")?;
++        }
+ 
+         Ok(())
+     }
+diff --git a/src/dx12/shader_compilation.rs b/src/dx12/shader_compilation.rs
+index ff41e503..7961cbf9 100644
+--- a/src/dx12/shader_compilation.rs
++++ b/src/dx12/shader_compilation.rs
+@@ -17,7 +17,8 @@ pub(super) enum CompilerContainer {
+ }
+ 
+ pub(super) struct CompilerFxc {
+-    fxc: FxcLib,
++    /// Loaded on the first compile: an app whose shaders all come precompiled never loads it.
++    fxc: std::sync::OnceLock<Result<FxcLib, String>>,
+ }
+ 
+ pub(super) struct CompilerDynamicDxc {
+@@ -43,7 +44,7 @@ pub(super) enum GetContainerError {
+ 
+ impl CompilerContainer {
+     pub(super) fn new_fxc() -> Result<Self, GetContainerError> {
+-        FxcLib::new_dynamic().map(|fxc| Self::Fxc(CompilerFxc { fxc }))
++        Ok(Self::Fxc(CompilerFxc { fxc: std::sync::OnceLock::new() }))
+     }
+ 
+     pub(super) fn new_dynamic_dxc(dxc_path: PathBuf) -> Result<Self, GetContainerError> {
+@@ -121,7 +122,9 @@ impl CompilerContainer {
+                 raw_ep,
+                 stage_bit,
+                 full_stage,
+-                fxc,
++                fxc.get_or_init(|| FxcLib::new_dynamic().map_err(|e| format!("{e}")))
++                    .as_ref()
++                    .map_err(|e| crate::PipelineError::Linkage(stage_bit, e.clone()))?,
+             ),
+             CompilerContainer::DynamicDxc(CompilerDynamicDxc { compiler, .. })
+             | CompilerContainer::StaticDxc(CompilerStaticDxc { compiler, .. }) => compile_dxc(

@@ -1,31 +1,31 @@
 {
   "name": "github-desktop-zh",
-  "version": "1.1.6",
-  "description": "GitHub Desktop 汉化补丁工具 - 一键汉化，支持还原",
-  "main": "dist/gui-main.js",
-  "bin": {
-    "github-desktop-zh": "./dist/main.js"
-  },
+  "version": "1.2.0",
+  "description": "GitHub Desktop 汉化补丁工具 - Rune 原生界面，一键汉化，支持还原",
   "scripts": {
     "clean:dist": "node scripts/clean.cjs dist",
     "clean:package": "node scripts/clean.cjs build",
     "build": "npm run clean:dist && tsc",
-    "start": "npm run dev",
-    "start:cli": "node dist/main.js",
-    "dev": "npm run build && npm run generate:icon && electron .",
+    "build:rune-assets": "npm run build && node scripts/build-rune-assets.cjs",
+    "build:rune": "npm run build:rune-assets && node scripts/cargo.cjs build --release",
+    "dev": "npm run build:rune-assets && node scripts/cargo.cjs run",
+    "start": "node scripts/cargo.cjs run",
     "generate:icon": "node scripts/generate-icon.cjs",
     "generate:cert": "node scripts/generate-cert.cjs",
-    "package": "npm run package:gui",
-    "package:gui": "npm run build && npm run generate:icon && npm run generate:cert && npm run clean:package && node scripts/package-gui.cjs",
-    "package:cli": "npm run build && npm run clean:package && pkg dist/main.js --targets node18-win-x64 --output build/patch-cli.exe",
+    "package": "npm run package:rune",
+    "package:rune": "npm run build:rune && npm run generate:cert && npm run clean:package && node scripts/package-rune.cjs",
     "lint": "eslint src/**/*.ts",
-    "test": "npm run build && node --test test/*.test.cjs"
+    "test": "npm run build && node --test test/*.test.cjs && node scripts/build-rune-assets.cjs --check",
+    "test:rune": "npm run build:rune-assets && node scripts/cargo.cjs test",
+    "test:all": "npm test && npm run test:rune"
   },
   "keywords": [
     "github-desktop",
     "chinese",
     "translation",
-    "汉化"
+    "汉化",
+    "rune",
+    "rust"
   ],
   "author": "",
   "license": "MIT",
@@ -33,52 +33,9 @@
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^8.65.0",
     "@typescript-eslint/parser": "^8.65.0",
-    "electron": "^43.2.0",
-    "electron-builder": "^26.15.3",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.8",
-    "pkg": "^5.8.0",
+    "rcedit": "^5.0.2",
     "typescript": "^5.3.0"
-  },
-  "pkg": {
-    "assets": [
-      "dist/**/*.js",
-      "dict/**/*.json"
-    ]
-  },
-  "build": {
-    "appId": "com.phonetofr.githubdesktopzh",
-    "productName": "GitHub Desktop 汉化补丁",
-    "asar": true,
-    "compression": "normal",
-    "electronLanguages": [
-      "en-US",
-      "zh-CN"
-    ],
-    "directories": {
-      "output": "build",
-      "buildResources": "build-resources"
-    },
-    "files": [
-      "dist/**/*.js",
-      "dict/**/*.json",
-      "gui/**/*"
-    ],
-    "win": {
-      "target": [
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "artifactName": "github-desktop-zh-${version}-portable.${ext}",
-      "executableName": "GitHubDesktopZh",
-      "icon": "build-resources/icon.ico"
-    },
-    "portable": {
-      "requestExecutionLevel": "user"
-    }
   }
 }

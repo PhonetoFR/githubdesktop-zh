@@ -1,0 +1,39 @@
+name: Rune
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.99.1
+          components: rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - run: npm ci
+      - run: npm test
+      - run: node scripts/cargo.cjs test
+      - run: npm run package:rune
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: github-desktop-zh-portable
+          path: build/*.exe

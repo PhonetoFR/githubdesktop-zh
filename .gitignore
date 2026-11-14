@@ -24,7 +24,6 @@ vendor/
 .yarn/
 changelog.json
 CODE_OF_CONDUCT.md
-LICENSE
 SECURITY.md
 CONTRIBUTING.md
 issue_template.md
@@ -59,6 +58,11 @@ out/
 dist/
 build-resources/
 node_modules/
+rust/target/
+
+# Rune 官方 patch 副本（必须提交）
+!rust/vendor/
+!rust/vendor/**
 
 # IDE
 .idea/
