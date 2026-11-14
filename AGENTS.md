@@ -4,7 +4,7 @@
 
 ## 1. 项目是什么
 
-Windows 图形化 GitHub Desktop 简体中文补丁工具。v1.2.1 起桌面端已从 Electron 迁移到 **Rust + Rune**，产物为单文件原生 EXE（约 16 MB），保留 CLI。
+Windows 图形化 GitHub Desktop 简体中文补丁工具。v1.3.0 起桌面端已从 Electron 迁移到 **Rust + Rune**，产物为单文件原生 EXE（约 17 MB），保留 CLI。
 
 **原理**:在 GitHub Desktop 的 `index.html` 中加载 `zh/runtime.js`，并修改 `main.js` 注入菜单补丁（劫持 `Menu.buildFromTemplate`）。运行时用 MutationObserver 监听 DOM，把英文文本节点和 `aria-label/title/placeholder/alt` 替换为中文。原文件备份为 `.bak`，补丁和还原失败时自动回滚。
 
@@ -13,7 +13,7 @@ Rune 只替换桌面壳和补丁器；翻译字典、动态规则、`runtime.js`
 - 仓库:`https://github.com/PhonetoFR/githubdesktop-zh`
 - 默认分支:`master`
 - 许可:MIT
-- 当前版本:`1.2.1`（Rune 原生版）
+- 当前版本:`1.3.0`（Rune 原生版）
 
 ## 2. 当前状态(2026-11-14 截止)
 
@@ -23,8 +23,8 @@ Rune 只替换桌面壳和补丁器；翻译字典、动态规则、`runtime.js`
 | 动态规则 `src/rules.ts` | 82 |
 | 桌面框架 | Rune（git rev `4970cffe6a4e90c7d613796be8ce39eb3dcb281b`） |
 | 单元测试 | 23 项 Node + 12 项 Rust（全过） |
-| 版本 | 1.2.1 |
-| 默认产物 | `build/github-desktop-zh-1.2.1-portable.exe`（16.14 MB） |
+| 版本 | 1.3.0 |
+| 默认产物 | `build/github-desktop-zh-1.3.0-portable.exe`（17.31 MB） |
 | 实测启动 | 约 0.30 秒（release；首次签名后可能被杀毒扫描拖慢） |
 | 实测内存 | 约 13 MB 工作集 |
 | 远端 origin | `https://github.com/PhonetoFR/githubdesktop-zh.git` |
@@ -39,7 +39,7 @@ rust/
 ├── rust-toolchain.toml 固定 1.99.1
 ├── src/
 │   ├── main.rs      CLI 入口 + GUI 启动
-│   ├── ui.rs        Rune 界面（Card/Button/Select/Badge/Spinner/IconButton）
+│   ├── ui.rs        Rune 界面（OpenCode 主题 + rune-kit）
 │   ├── application.rs 目标选择、运行状态拦截、操作编排
 │   ├── patcher.rs   状态/备份/事务写入/回滚/还原/进程检测
 │   ├── install.rs   安装目录扫描、版本排序
@@ -88,6 +88,7 @@ npm run lint                # eslint src/**/*.ts
 - **Rust 工具链固定 1.99.1**（`rust/rust-toolchain.toml`）。本机是 GNU 工具链；`scripts/cargo.cjs` 检测不到 `link.exe` 时自动改用 `1.99.1-x86_64-pc-windows-gnu`。
 - **GNU 构建需要 MSYS2 UCRT64 binutils**：`dlltool.exe` 必须在 PATH，脚本会尝试 `C:\msys64\ucrt64\bin` 与 `%TEMP%\opencode\msys64\ucrt64\bin`。MSVC 构建不需要。
 - **Rune 必须带官方 patch**：`rust/vendor/` 中的 `wgpu-hal`/`winit`/`parley_engine`/`accesskit_windows` 不能删；`wgpu-hal` 的 `expose_adapter` 是 Windows 编译必需。
+- **UI 使用 `rune-theme-opencode`**：`kit(dark)` 提供 OpenCode 的 tokens；`AppSpec` 必须设置 `fonts: FONTS` 和 `families: FAMILIES`，否则字体不是 Inter / IBM Plex Mono。图标统一用 `rune_theme_opencode::icons::*`。
 - **改字典或规则后必须运行 `npm run build:rune-assets`**，并提交 `rust/assets/*`。`npm test` 会跑 `--check` 阻止资产过期。
 - **不要用 winres 写 Windows 资源**：GNU `ld` 只会保留一个 `.rsrc`，会丢掉版本/图标。改用 `rcedit`（`package-rune.cjs`）。
 - **不要打印资产体积用字符数**：`runtime.js` 约 99 KB UTF-8、75 K 字符；测试用 `Buffer.byteLength`。
@@ -166,8 +167,8 @@ batch 6 已挖:release-3.6.4 全量静态扫描（关于/偏好、发布仓库�
 ## 10. 路线图(按风险分级)
 
 ### 已完成
-- Electron → Rune 原生桌面迁移（Rust 1.99.1，体积 78 MB → 16 MB，启动 5.9 s → 0.3 s）
-- Rune GUI：Card/Button/Select/Badge/Spinner/IconButton，自绘标题栏，深色/浅色
+- Electron → Rune 原生桌面迁移（Rust 1.99.1，体积 78 MB → 17 MB，启动 5.9 s → 0.3 s）
+- Rune GUI：OpenCode 主题与 Inter 字体，左侧版本栏 + 主面板，深色/浅色
 - Rust 补丁器 1:1 移植（备份、事务回滚、所有权、异常状态、进程拦截）
 - 同 EXE CLI：`--patch/--restore/--status/--version/--target`
 - 翻译资产生成 + `--check` 一致性测试
@@ -188,7 +189,7 @@ batch 6 已挖:release-3.6.4 全量静态扫描（关于/偏好、发布仓库�
 - **跨平台**：当前只支持 Windows x64；Rune 本身支持多平台，但安装定位/进程检测尚未抽象。
 
 ### 已知小瑕疵
-- Rune EXE 约 16 MB，仍大于理想值；可继续调 `opt-level`/strip/LTO。
+- Rune EXE 约 17 MB，仍大于理想值；可继续调 `opt-level`/strip/LTO。
 - 翻译运行时仍是注入 JS，无法被 Rust 替代。
 - 高 DPI 下窗口/截图工具需 DPI-aware，否则容易误判“窗口只有 6×6”。
 

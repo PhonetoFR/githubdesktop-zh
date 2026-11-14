@@ -1,75 +1,24 @@
 use std::sync::mpsc::{self, Receiver, TryRecvError};
 use std::time::Duration;
 
-use rune::{AppSpec, Color, Cx, El, Icon, TextStyle, Titlebar, col, el, icon, row, text};
+use rune::{AppSpec, Color, Cx, El, TextStyle, Titlebar, col, el, icon, row, text};
 use rune_kit::{
-    Badge, BadgeVariant, Button, ButtonVariant, Card, ControlSize, IconButton, IconButtonVariant,
-    Kit, PaletteSeed, Select, SelectAppearance, Spinner,
+    Button, ButtonVariant, ControlSize, IconButton, IconButtonVariant, Kit, Spinner,
 };
+use rune_theme_opencode::{FAMILIES, FONTS, icons};
 
 use crate::application::{InstallView, Snapshot, apply_patch, get_snapshot, restore_original};
-use crate::assets::{TOOL_NAME, counts, tool_version};
+use crate::assets::{counts, tool_version, TOOL_NAME};
 use crate::error::Result;
 use crate::install::{AppInstall, PatchState, find_installs};
 use crate::patcher::{DesktopProcessState, PatchResult, get_desktop_process_state};
 use crate::platform::open_url;
 
-const WINDOW_SIZE: (f32, f32) = (1040.0, 560.0);
+const WINDOW_SIZE: (f32, f32) = (1000.0, 560.0);
 const MIN_WINDOW_SIZE: (f32, f32) = (860.0, 540.0);
-const TITLEBAR_HEIGHT: f32 = 48.0;
+const TITLEBAR_HEIGHT: f32 = 42.0;
+const SIDEBAR_WIDTH: f32 = 250.0;
 const REPOSITORY_URL: &str = "https://github.com/PhonetoFR/githubdesktop-zh";
-
-// ---------------------------------------------------------------------------
-// Icons (SVG bodies for Rune's icon rasteriser)
-// ---------------------------------------------------------------------------
-
-static ICON_BRANCH: Icon = Icon {
-    name: "zh-branch",
-    view: 24.0,
-    body: r#"<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="5" r="2.2"/><circle cx="18" cy="6" r="2.2"/><circle cx="6.5" cy="19" r="2.2"/><path d="M6.5 7.2v9.6M8.7 10.5h4.2A5.1 5.1 0 0 0 18 8.2"/></g>"#,
-};
-
-static ICON_CHECK: Icon = Icon {
-    name: "zh-check",
-    view: 24.0,
-    body: r#"<path d="M5 12.5l4.2 4.2L19 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>"#,
-};
-
-static ICON_RESTORE: Icon = Icon {
-    name: "zh-restore",
-    view: 24.0,
-    body: r#"<path d="M4 9v6h6M5.3 15A7.2 7.2 0 1 0 6.8 6.8L4 9.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>"#,
-};
-
-static ICON_REFRESH: Icon = Icon {
-    name: "zh-refresh",
-    view: 24.0,
-    body: r#"<path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>"#,
-};
-
-static ICON_EXTERNAL: Icon = Icon {
-    name: "zh-external",
-    view: 24.0,
-    body: r#"<path d="M14 4h6v6M20 4l-9 9M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>"#,
-};
-
-static ICON_DESKTOP: Icon = Icon {
-    name: "zh-desktop",
-    view: 24.0,
-    body: r#"<rect x="3" y="4.5" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 20h6M12 16.5V20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>"#,
-};
-
-static ICON_INFO: Icon = Icon {
-    name: "zh-info",
-    view: 24.0,
-    body: r#"<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v5M12 7.8v.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>"#,
-};
-
-static ICON_ERROR: Icon = Icon {
-    name: "zh-error",
-    view: 24.0,
-    body: r#"<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 8.5 7 7M15.5 8.5l-7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>"#,
-};
 
 // ---------------------------------------------------------------------------
 // State
@@ -129,7 +78,6 @@ struct State {
     activity: Option<Activity>,
     notice: Option<Notice>,
     fatal_error: Option<String>,
-    select_open: bool,
     last_process_check: f64,
     op_rx: Option<Receiver<OpOutcome>>,
 }
@@ -144,7 +92,6 @@ impl State {
             activity: None,
             notice: None,
             fatal_error: None,
-            select_open: false,
             last_process_check: 0.0,
             op_rx: None,
         };
@@ -303,140 +250,84 @@ fn poll(state: &mut State, now: f64, tx: &mut rune::Tx) -> bool {
 }
 
 // ---------------------------------------------------------------------------
-// Theme
+// Visual helpers (OpenCode theme)
 // ---------------------------------------------------------------------------
 
-fn color(hex: &str) -> Color {
-    rune::color::hex(hex).unwrap_or(Color::WHITE)
-}
-
-fn theme(dark: bool) -> Kit {
-    let bg = if dark {
-        color("#0d1117")
-    } else {
-        color("#f3f6fa")
-    };
-    let fg = if dark {
-        color("#e6edf3")
-    } else {
-        color("#1f2328")
-    };
-    let accent = color("#2f81f7");
-    let mut kit = Kit::from_palette(PaletteSeed { bg, fg, accent });
-    kit.c.page = bg;
-    kit.c.bg_base = if dark { color("#161b22") } else { Color::WHITE };
-    kit.c.bg_button_neutral = kit.c.bg_base;
-    kit.c.bg_icon_button_contrast = accent;
-    kit.c.submit_fg = Color::WHITE;
-    kit.c.submit_icon = Color::WHITE;
-    kit.c.text_base = fg;
-    kit.c.text_muted = if dark {
-        color("#8b949e")
-    } else {
-        color("#57606a")
-    };
-    kit.c.text_faint = if dark {
-        color("#6e7681")
-    } else {
-        color("#6e7781")
-    };
-    kit.c.border_base = if dark {
-        color("#30363d")
-    } else {
-        color("#d0d7de")
-    };
-    kit.c.border_weak = if dark {
-        color("#21262d")
-    } else {
-        color("#e6eaef")
-    };
-    kit.c.layer_01 = if dark {
-        color("#0d1117")
-    } else {
-        color("#ffffff")
-    };
-    kit.c.layer_02 = if dark {
-        color("#161b22")
-    } else {
-        color("#f6f8fa")
-    };
-    kit.ty.ui = TextStyle::new(13.5, 400.0).lh(21.0);
-    kit.ty.ui_medium = TextStyle {
-        weight: 600.0,
-        ..kit.ty.ui
-    };
-    kit.ty.body = TextStyle::new(14.0, 400.0).lh(22.0);
-    kit.ty.body_medium = TextStyle {
-        weight: 600.0,
-        ..kit.ty.body
-    };
-    kit.ty.small = TextStyle::new(11.5, 400.0).lh(16.0);
-    kit.ty.small_medium = TextStyle {
-        weight: 500.0,
-        ..kit.ty.small
-    };
-    kit.radius.md = 8.0;
-    kit.radius.lg = 14.0;
-    kit
-}
-
-fn card_shell(k: &Kit) -> El {
-    col()
-        .fill(k.c.bg_base)
-        .border(0.5, k.c.border_base)
-        .radius(k.radius.lg)
-        .shadow(1.0, 2.0, Color::BLACK.alpha(0.06))
-        .shadow(8.0, 24.0, Color::BLACK.alpha(0.05))
-}
-
-fn divider(k: &Kit) -> El {
-    el().h(1.0).w_full().fill(k.c.border_weak).a11y_hidden()
-}
-
-fn eyebrow(k: &Kit, label: &str) -> El {
+fn section_label(k: &Kit, label: &str) -> El {
     text(label)
-        .font(k.ty.small_medium)
+        .font(k.ty.small)
         .color(k.c.text_faint)
         .a11y_hidden()
 }
 
-fn pill(k: &Kit, label: &str, fg: Color, bg: Color) -> El {
+fn divider(k: &Kit) -> El {
+    el().h(1.0).w_full().fill(k.c.border_muted).a11y_hidden()
+}
+
+fn state_badge(k: &Kit, state: PatchState) -> El {
+    let (fg, bg) = match state {
+        PatchState::None => (k.c.text_muted, k.c.layer_02),
+        PatchState::Patched => (k.c.success.fg, k.c.success.bg),
+        PatchState::Restored => (k.c.info.fg, k.c.info.bg),
+        PatchState::Broken => (k.c.danger.fg, k.c.danger.bg),
+    };
     row()
-        .h(23.0)
-        .px(9.0)
-        .radius(11.5)
+        .h(18.0)
+        .px(6.0)
+        .radius(4.0)
+        .fill(bg)
+        .label(state.label())
+        .child(
+            text(state.label())
+                .font(k.ty.small)
+                .color(fg)
+                .a11y_hidden(),
+        )
+}
+
+fn process_badge(k: &Kit, state: DesktopProcessState, refreshing: bool) -> El {
+    let (label, fg, bg) = if refreshing {
+        ("检测中", k.c.text_muted, k.c.layer_02)
+    } else {
+        match state {
+            DesktopProcessState::NotRunning => ("可以操作", k.c.success.fg, k.c.success.bg),
+            DesktopProcessState::Running => ("需要关闭", k.c.warning.fg, k.c.warning.bg),
+            DesktopProcessState::Unknown => ("检测失败", k.c.danger.fg, k.c.danger.bg),
+        }
+    };
+    row()
+        .h(18.0)
+        .px(6.0)
+        .radius(4.0)
         .fill(bg)
         .label(label)
-        .child(text(label).font(k.ty.small_medium).color(fg).a11y_hidden())
+        .child(text(label).font(k.ty.small).color(fg).a11y_hidden())
 }
 
-fn detail_row(k: &Kit, label: &str, value: El) -> El {
-    row()
-        .w_full()
-        .center_y()
-        .justify_between()
-        .gap(12.0)
-        .child(text(label).font(k.ty.ui).color(k.c.text_muted))
-        .child(value)
-}
-
-fn status_pill(k: &Kit, state: PatchState) -> El {
+fn state_color(k: &Kit, state: PatchState) -> Color {
     match state {
-        PatchState::None => pill(k, "未汉化", k.c.text_muted, k.c.layer_02),
-        PatchState::Patched => pill(k, "已汉化", k.c.success.fg, k.c.success.bg),
-        PatchState::Restored => pill(k, "已还原", k.c.info.fg, k.c.info.bg),
-        PatchState::Broken => pill(k, "状态异常", k.c.danger.fg, k.c.danger.bg),
+        PatchState::None => k.c.text_faint,
+        PatchState::Patched => k.c.success.fg,
+        PatchState::Restored => k.c.info.fg,
+        PatchState::Broken => k.c.danger.fg,
     }
 }
 
-fn process_visual(
+fn process_color(k: &Kit, state: DesktopProcessState) -> Color {
+    match state {
+        DesktopProcessState::NotRunning => k.c.success.fg,
+        DesktopProcessState::Running => k.c.warning.fg,
+        DesktopProcessState::Unknown => k.c.danger.fg,
+    }
+}
+
+fn process_copy(
     k: &Kit,
     state: DesktopProcessState,
     refreshing: bool,
-) -> (El, String, String, Color) {
+) -> (String, String, Color) {
     if refreshing {
         return (
-            pill(k, "检测中", k.c.text_muted, k.c.layer_02),
             "正在检测 GitHub Desktop".to_owned(),
             "请稍候".to_owned(),
             k.c.text_faint,
@@ -444,24 +335,25 @@ fn process_visual(
     }
     match state {
         DesktopProcessState::NotRunning => (
-            pill(k, "可以操作", k.c.success.fg, k.c.success.bg),
             "GitHub Desktop 已关闭".to_owned(),
             "可以安全地应用汉化或还原文件".to_owned(),
-            k.c.success.fg,
+            process_color(k, state),
         ),
         DesktopProcessState::Running => (
-            pill(k, "需要关闭", k.c.warning.fg, k.c.warning.bg),
             "GitHub Desktop 正在运行".to_owned(),
             "请先关闭应用，再点击刷新".to_owned(),
-            k.c.warning.fg,
+            process_color(k, state),
         ),
         DesktopProcessState::Unknown => (
-            pill(k, "检测失败", k.c.danger.fg, k.c.danger.bg),
             "无法确认 GitHub Desktop 状态".to_owned(),
             "为保护程序文件，操作已禁用".to_owned(),
-            k.c.danger.fg,
+            process_color(k, state),
         ),
     }
+}
+
+fn text_primary(size: f32, weight: f32) -> TextStyle {
+    TextStyle::new(size, weight).lh(size + 6.0)
 }
 
 // ---------------------------------------------------------------------------
@@ -470,247 +362,302 @@ fn process_visual(
 
 fn view(state: &State, cx: &mut Cx<State>) -> El {
     let dark = cx.system_dark();
-    let k = theme(dark);
+    let k = rune_theme_opencode::kit(dark);
     cx.caption_color(k.c.text_base);
     let insets = cx.chrome_insets();
-    let mut layer = Vec::new();
+    let layer = Vec::new();
 
-    let header = row()
-        .key("header")
+    let titlebar = row()
+        .key("titlebar")
         .window_drag()
-        .h(76.0)
+        .h(TITLEBAR_HEIGHT)
         .w_full()
-        .px(24.0)
-        .pr(insets.trailing + 16.0)
-        .gap(14.0)
+        .px(14.0)
+        .pr(insets.trailing + 10.0)
+        .gap(8.0)
         .center_y()
+        .child(icon(&icons::GITHUB, 16.0).color(k.c.icon_muted))
         .child(
-            el().size(44.0, 44.0)
-                .radius(13.0)
-                .fill(k.c.bg_accent)
-                .center()
-                .child(icon(&ICON_BRANCH, 26.0).color(k.c.text_contrast))
-                .a11y_hidden(),
+            text(TOOL_NAME)
+                .font(text_primary(12.5, 500.0))
+                .color(k.c.text_muted),
         )
-        .child(
-            col()
-                .gap(2.0)
-                .child(
-                    text(TOOL_NAME)
-                        .font(TextStyle::new(20.0, 650.0).lh(26.0))
-                        .color(k.c.text_base),
-                )
-                .child(
-                    text("安全应用简体中文翻译，随时可还原。")
-                        .font(k.ty.ui)
-                        .color(k.c.text_muted),
-                ),
-        )
-        .child(el().grow(1.0))
-        .child(
-            Badge::new(format!("v{}", tool_version()))
-                .variant(BadgeVariant::Subtle)
-                .standard()
-                .build(&k),
-        );
+        .child(el().grow(1.0));
 
-    let content = col()
+    let body = col()
         .w_full()
-        .max_w(1120.0)
-        .gap(16.0)
-        .px(24.0)
-        .pt(4.0)
-        .pb(24.0)
+        .h_full()
+        .fill(k.c.page)
+        .child(titlebar)
         .child(
             row()
                 .w_full()
-                .items_start()
-                .gap(16.0)
-                .child(status_card(state, &k))
-                .child(operation_card(state, &k, &mut layer)),
-        )
-        .child(footer(&k, state));
-
-    let body = col().w_full().h_full().fill(k.c.page).child(header).child(
-        row().w_full().grow(1.0).min_h(0.0).justify_center().child(
-            col()
-                .w_full()
-                .h_full()
+                .grow(1.0)
                 .min_h(0.0)
-                .scroll(rune::ScrollSpec {
-                    stick_bottom: false,
-                })
-                .child(row().w_full().justify_center().child(content)),
-        ),
-    );
+                .child(sidebar(state, k))
+                .child(main_panel(state, k)),
+        );
 
     rune_kit::root(body, layer)
 }
 
-fn status_card(state: &State, k: &Kit) -> El {
-    let refreshing = state.busy && state.activity == Some(Activity::Refresh);
-    let (pill_el, title, description, dot_color) =
-        process_visual(k, state.process_state(), refreshing);
-
-    let install_count = state
-        .snapshot
-        .as_ref()
-        .map(|snapshot| snapshot.installs.len())
-        .unwrap_or(0);
-    let newest = state
-        .snapshot
-        .as_ref()
-        .and_then(|snapshot| snapshot.newest_version.clone())
-        .unwrap_or_else(|| "--".to_owned());
-
-    let mut card = card_shell(k)
-        .key("status-card")
-        .w(300.0)
-        .padding(20.0)
-        .gap(14.0);
-    card = card
-        .child(eyebrow(k, "应用状态"))
-        .child(
-            row()
-                .gap(10.0)
+fn sidebar(state: &State, k: &Kit) -> El {
+    let mut versions = col().w_full().gap(1.0);
+    if state.installs.is_empty() {
+        versions = versions.child(
+            text("未找到 GitHub Desktop")
+                .font(k.ty.ui)
+                .color(k.c.text_faint)
+                .px(8.0)
+                .py(8.0),
+        );
+    } else {
+        for install in &state.installs {
+            let version = install.version.clone();
+            let version_for_click = version.clone();
+            let status = state
+                .snapshot
+                .as_ref()
+                .and_then(|snapshot| {
+                    snapshot
+                        .installs
+                        .iter()
+                        .find(|entry| entry.install.version == version)
+                })
+                .map(|entry| entry.status.state)
+                .unwrap_or(PatchState::None);
+            let selected = state.selected.as_deref() == Some(version.as_str());
+            let row_el = row()
+                .key(format!("version-{version}"))
+                .h(42.0)
+                .w_full()
+                .px(8.0)
+                .gap(8.0)
                 .center_y()
+                .radius(6.0)
+                .fill(if selected {
+                    k.c.layer_02
+                } else {
+                    Color::TRANSPARENT
+                })
+                .hover(k.c.hover)
+                .press(k.c.pressed)
+                .focusable(true)
+                .label(format!("GitHub Desktop {version}，{}", status.label()))
+                .on_press(move |state: &mut State| {
+                    state.selected = Some(version_for_click.clone());
+                    state.notice = None;
+                })
                 .child(
-                    el().size(18.0, 18.0)
-                        .center()
-                        .a11y_hidden()
-                        .child(el().size(10.0, 10.0).radius(5.0).fill(dot_color)),
+                    el()
+                        .size(7.0, 7.0)
+                        .radius(3.5)
+                        .fill(state_color(k, status))
+                        .a11y_hidden(),
                 )
                 .child(
-                    text(title)
-                        .font(TextStyle::new(18.0, 650.0).lh(24.0))
-                        .color(k.c.text_base)
-                        .grow(1.0),
-                ),
-        )
-        .child(
-            text(description)
-                .font(k.ty.ui)
-                .color(k.c.text_muted)
-                .wrap()
-                .w_full(),
-        )
-        .child(row().gap(8.0).child(pill_el))
-        .child(divider(k))
-        .child(detail_row(
-            k,
-            "可用版本",
-            text(format!("{install_count} 个"))
-                .font(k.ty.ui_medium)
-                .color(k.c.text_base),
-        ))
-        .child(detail_row(
-            k,
-            "当前版本",
-            text(newest).font(k.ty.ui_medium).color(k.c.text_base),
-        ))
-        .child(
-            text("原文件会备份为 .bak，可随时还原。")
-                .font(k.ty.small)
-                .color(k.c.text_faint)
-                .wrap()
-                .w_full(),
-        );
-
-    if let Some(error) = &state.fatal_error {
-        card = card.child(
-            text(error)
-                .font(k.ty.ui)
-                .color(k.c.danger.fg)
-                .wrap()
-                .w_full(),
-        );
+                    col()
+                        .grow(1.0)
+                        .gap(1.0)
+                        .child(
+                            text(version.clone())
+                                .font(k.ty.ui)
+                                .color(if selected {
+                                    k.c.text_base
+                                } else {
+                                    k.c.text_muted
+                                })
+                                .truncate(),
+                        )
+                        .child(
+                            text(format!("GitHub Desktop · {}", status.label()))
+                                .font(k.ty.small)
+                                .color(k.c.text_faint)
+                                .truncate(),
+                        ),
+                );
+            versions = versions.child(row_el);
+        }
     }
 
-    card
+    col()
+        .key("sidebar")
+        .w(SIDEBAR_WIDTH)
+        .h_full()
+        .min_h(0.0)
+        .px(10.0)
+        .pb(10.0)
+        .gap(6.0)
+        .child(section_label(k, "安装版本"))
+        .child(versions)
+        .child(el().grow(1.0))
+        .child(divider(k))
+        .child(
+            text(format!(
+                "字典 {} 条 · 规则 {} 条",
+                counts().dict_count,
+                counts().rules_count
+            ))
+            .font(k.ty.small)
+            .color(k.c.text_faint)
+            .px(8.0)
+            .py(4.0),
+        )
+        .child(
+            text(format!("v{}", tool_version()))
+                .font(k.ty.small)
+                .color(k.c.text_faint)
+                .px(8.0),
+        )
+        .child(
+            row()
+                .px(4.0)
+                .child(
+                    Button::new("查看项目主页")
+                        .variant(ButtonVariant::GhostMuted)
+                        .control_size(ControlSize::Small)
+                        .icon(&icons::ARROW_UP_RIGHT)
+                        .on_press_tx(|state: &mut State, _tx: &mut rune::Tx| {
+                            if let Err(error) = open_url(REPOSITORY_URL) {
+                                state.notice = Some(Notice::error(error.to_string()));
+                            }
+                        })
+                        .build(k),
+                ),
+        )
 }
 
-fn operation_card(state: &State, k: &Kit, layer: &mut Vec<El>) -> El {
+fn main_panel(state: &State, k: &Kit) -> El {
     let selected = state.selected_view();
     let status = selected
         .map(|entry| entry.status.state)
         .unwrap_or(PatchState::None);
-    let has_backup = selected
-        .map(|entry| entry.status.has_backup)
-        .unwrap_or(false);
+    let has_backup = selected.map(|entry| entry.status.has_backup).unwrap_or(false);
+    let refreshing = state.busy && state.activity == Some(Activity::Refresh);
+    let (process_title, process_description, process_dot_color) =
+        process_copy(k, state.process_state(), refreshing);
 
-    let mut card = Card::new()
-        .accent(k.c.icon_accent)
-        .title("目标安装", Some(&ICON_DESKTOP))
-        .description("选择要处理的 GitHub Desktop 版本");
+    let mut refresh = IconButton::new(&icons::REFRESH)
+        .variant(IconButtonVariant::GhostMuted)
+        .label("刷新状态")
+        .help("刷新安装与运行状态")
+        .on_press_tx(|state: &mut State, tx: &mut rune::Tx| {
+            if state.busy {
+                return;
+            }
+            state.busy = true;
+            state.activity = Some(Activity::Refresh);
+            state.notice = None;
+            state.refresh();
+            state.busy = false;
+            state.activity = None;
+            tx.wake_after(Duration::from_millis(10));
+        });
+    if state.busy {
+        refresh = refresh.disabled(true);
+    }
 
-    let labels: Vec<String> = state
-        .installs
-        .iter()
-        .map(|install| install.version.clone())
-        .collect();
-    let current_label = state.selected.clone();
+    let topbar = row()
+        .h(50.0)
+        .w_full()
+        .px(18.0)
+        .gap(10.0)
+        .center_y()
+        .child(
+            text("汉化")
+                .font(text_primary(15.0, 600.0))
+                .color(k.c.text_base),
+        )
+        .child(
+            text("GitHub Desktop 简体中文补丁")
+                .font(k.ty.small)
+                .color(k.c.text_faint),
+        )
+        .child(el().grow(1.0))
+        .child(process_badge(k, state.process_state(), refreshing))
+        .child(if state.busy {
+            Spinner::new().build(k)
+        } else {
+            refresh.build(k)
+        });
 
-    let selector = if labels.is_empty() {
-        row()
-            .h(38.0)
-            .w_full()
-            .px(12.0)
-            .radius(k.radius.md)
-            .fill(k.c.layer_02)
-            .border(0.5, k.c.border_base)
-            .center_y()
-            .child(
-                text("未找到 GitHub Desktop")
-                    .font(k.ty.ui)
-                    .color(k.c.text_muted),
-            )
-    } else {
-        let mut select = Select::new("version", &labels)
-            .current(current_label.as_deref())
-            .label("安装版本")
-            .appearance(SelectAppearance::Field)
-            .width(440.0)
-            .open(state.select_open)
-            .on_toggle(|state: &mut State| {
-                state.select_open = !state.select_open;
-            })
-            .on_close(|state: &mut State| {
-                state.select_open = false;
-            })
-            .on_choose(|state: &mut State, value: &str, _tx: &mut rune::Tx| {
-                state.selected = Some(value.to_owned());
-                state.select_open = false;
-                state.notice = None;
-            });
-        if state.busy {
-            select = select.state(rune_kit::State::Disabled);
-        }
-        select.build(k, layer)
-    };
+    let content = col()
+        .w_full()
+        .gap(18.0)
+        .px(20.0)
+        .pt(16.0)
+        .pb(24.0)
+        .child(
+            col()
+                .gap(4.0)
+                .child(
+                    row()
+                        .gap(8.0)
+                        .center_y()
+                        .child(
+                            el()
+                                .size(8.0, 8.0)
+                                .radius(4.0)
+                                .fill(process_dot_color)
+                                .a11y_hidden(),
+                        )
+                        .child(
+                            text(process_title)
+                                .font(text_primary(15.0, 600.0))
+                                .color(k.c.text_base),
+                        ),
+                )
+                .child(
+                    text(process_description)
+                        .font(k.ty.ui)
+                        .color(k.c.text_muted),
+                ),
+        )
+        .child(
+            col()
+                .gap(8.0)
+                .child(section_label(k, "目标版本"))
+                .child(version_panel(selected, status, k)),
+        )
+        .child(
+            col()
+                .gap(8.0)
+                .child(section_label(k, "安装详情"))
+                .child(
+                    col()
+                        .w_full()
+                        .gap(0.0)
+                        .child(setting_row(k, "汉化状态", state_badge(k, status)))
+                        .child(divider(k))
+                        .child(setting_row(
+                            k,
+                            "原文件备份",
+                            text(if has_backup {
+                                "已安全备份"
+                            } else {
+                                "尚未创建"
+                            })
+                            .font(k.ty.ui)
+                            .color(if has_backup {
+                                k.c.text_base
+                            } else {
+                                k.c.text_muted
+                            }),
+                        ))
+                        .child(divider(k))
+                        .child(setting_row(
+                            k,
+                            "可用版本",
+                            text(format!("{} 个", state.installs.len()))
+                                .font(k.ty.ui)
+                                .color(k.c.text_base),
+                        )),
+                ),
+        );
 
-    card = card.child(col().gap(6.0).child(eyebrow(k, "安装版本")).child(selector));
-
-    card = card
-        .child(divider(k))
-        .child(detail_row(k, "汉化状态", status_pill(k, status)))
-        .child(detail_row(
-            k,
-            "原文件备份",
-            text(if has_backup {
-                "已安全备份"
-            } else {
-                "尚未创建"
-            })
-            .font(k.ty.ui_medium)
-            .color(if has_backup {
-                k.c.text_base
-            } else {
-                k.c.text_muted
-            }),
-        ));
-
+    let mut content = content;
     if let Some(notice) = &state.notice {
-        card = card.child(notice_row(k, notice));
+        content = content.child(notice_row(k, notice));
     }
 
     let patch_label = if status == PatchState::Patched {
@@ -721,8 +668,8 @@ fn operation_card(state: &State, k: &Kit, layer: &mut Vec<El>) -> El {
 
     let patch_button = Button::new(patch_label)
         .variant(ButtonVariant::Submit)
-        .control_size(ControlSize::ExtraLarge)
-        .icon(&ICON_CHECK)
+        .control_size(ControlSize::Large)
+        .icon(&icons::CHECK)
         .disabled(!state.can_patch())
         .on_press_tx(|state: &mut State, tx: &mut rune::Tx| {
             start_action(state, Activity::Patch, tx);
@@ -730,20 +677,20 @@ fn operation_card(state: &State, k: &Kit, layer: &mut Vec<El>) -> El {
         .build(k);
 
     let restore_button = Button::new("还原英文")
-        .variant(ButtonVariant::Outline)
-        .control_size(ControlSize::ExtraLarge)
-        .icon(&ICON_RESTORE)
+        .variant(ButtonVariant::Neutral)
+        .control_size(ControlSize::Large)
+        .icon(&icons::OUTLINE_UNDO)
         .disabled(!state.can_restore())
         .on_press_tx(|state: &mut State, tx: &mut rune::Tx| {
             start_action(state, Activity::Restore, tx);
         })
         .build(k);
 
-    card = card
+    content = content
         .child(
             row()
                 .w_full()
-                .gap(10.0)
+                .gap(8.0)
                 .pt(2.0)
                 .child(patch_button)
                 .child(restore_button),
@@ -751,20 +698,128 @@ fn operation_card(state: &State, k: &Kit, layer: &mut Vec<El>) -> El {
         .child(
             text(action_hint(state, status, has_backup))
                 .font(k.ty.small)
-                .color(k.c.text_faint)
-                .wrap()
-                .w_full(),
+                .color(k.c.text_faint),
         );
 
-    card.build(k)
-        .key("operation-card")
+    col()
+        .key("main-panel")
         .grow(1.0)
+        .h_full()
+        .min_h(0.0)
+        .mr(10.0)
+        .mb(10.0)
         .fill(k.c.bg_base)
-        .border(0.5, k.c.border_base)
-        .radius(k.radius.lg)
-        .shadow(1.0, 2.0, Color::BLACK.alpha(0.06))
-        .shadow(8.0, 24.0, Color::BLACK.alpha(0.05))
-        .padding(8.0)
+        .border(1.0, k.c.border_base)
+        .radius(10.0)
+        .child(topbar)
+        .child(divider(k))
+        .child(
+            col()
+                .w_full()
+                .grow(1.0)
+                .min_h(0.0)
+                .scroll(rune::ScrollSpec { stick_bottom: false })
+                .child(content),
+        )
+}
+
+fn version_panel(selected: Option<&InstallView>, status: PatchState, k: &Kit) -> El {
+    let version = selected
+        .map(|entry| format!("GitHub Desktop {}", entry.install.version))
+        .unwrap_or_else(|| "未选择版本".to_owned());
+    let path = selected
+        .map(|entry| entry.install.app_dir.display().to_string())
+        .unwrap_or_else(|| "--".to_owned());
+
+    let mut panel = col()
+        .w_full()
+        .gap(8.0)
+        .padding(12.0)
+        .fill(k.c.layer_01)
+        .border(1.0, k.c.border_base)
+        .radius(8.0)
+        .child(
+            row()
+                .gap(8.0)
+                .center_y()
+                .child(icon(&icons::GITHUB, 16.0).color(k.c.icon_muted))
+                .child(
+                    text(version)
+                        .font(text_primary(14.0, 600.0))
+                        .color(k.c.text_base)
+                        .grow(1.0),
+                )
+                .child(state_badge(k, status)),
+        );
+
+    panel = panel.child(
+        row()
+            .w_full()
+            .gap(8.0)
+            .center_y()
+            .child(
+                text("安装目录")
+                    .font(k.ty.small)
+                    .color(k.c.text_faint),
+            )
+            .child(
+                text(path)
+                    .font(k.ty.small)
+                    .color(k.c.text_muted)
+                    .grow(1.0)
+                    .truncate(),
+            ),
+    );
+    panel
+}
+
+fn setting_row(k: &Kit, label: &str, value: El) -> El {
+    row()
+        .h(40.0)
+        .w_full()
+        .center_y()
+        .justify_between()
+        .gap(12.0)
+        .child(text(label).font(k.ty.ui).color(k.c.text_muted))
+        .child(value)
+}
+
+fn notice_row(k: &Kit, notice: &Notice) -> El {
+    let (fg, bg, border, glyph) = match notice.tone {
+        NoticeTone::Info => (k.c.info.fg, k.c.info.bg, k.c.info.border, &icons::INFO),
+        NoticeTone::Success => (
+            k.c.success.fg,
+            k.c.success.bg,
+            k.c.success.border,
+            &icons::CHECK,
+        ),
+        NoticeTone::Error => (
+            k.c.danger.fg,
+            k.c.danger.bg,
+            k.c.danger.border,
+            &icons::CIRCLE_XMARK,
+        ),
+    };
+    row()
+        .w_full()
+        .padding(10.0)
+        .gap(8.0)
+        .radius(6.0)
+        .fill(bg)
+        .border(1.0, border)
+        .role(if notice.tone == NoticeTone::Error {
+            "alert"
+        } else {
+            "status"
+        })
+        .child(icon(glyph, 15.0).color(fg).a11y_hidden())
+        .child(
+            text(notice.text.clone())
+                .font(k.ty.ui)
+                .color(fg)
+                .wrap()
+                .grow(1.0),
+        )
 }
 
 fn action_hint(state: &State, status: PatchState, has_backup: bool) -> &'static str {
@@ -787,100 +842,6 @@ fn action_hint(state: &State, status: PatchState, has_backup: bool) -> &'static 
         return "补丁或备份不完整，建议重装 GitHub Desktop。";
     }
     "操作只修改所选版本，原文件会保留备份。"
-}
-
-fn notice_row(k: &Kit, notice: &Notice) -> El {
-    let (fg, bg, border, icon_body) = match notice.tone {
-        NoticeTone::Info => (k.c.info.fg, k.c.info.bg, k.c.info.border, &ICON_INFO),
-        NoticeTone::Success => (
-            k.c.success.fg,
-            k.c.success.bg,
-            k.c.success.border,
-            &ICON_CHECK,
-        ),
-        NoticeTone::Error => (k.c.danger.fg, k.c.danger.bg, k.c.danger.border, &ICON_ERROR),
-    };
-    row()
-        .w_full()
-        .padding(11.0)
-        .gap(9.0)
-        .radius(k.radius.md)
-        .fill(bg)
-        .border(0.5, border)
-        .role(if notice.tone == NoticeTone::Error {
-            "alert"
-        } else {
-            "status"
-        })
-        .child(icon(icon_body, 16.0).color(fg).a11y_hidden())
-        .child(
-            text(notice.text.clone())
-                .font(k.ty.ui)
-                .color(fg)
-                .wrap()
-                .grow(1.0),
-        )
-}
-
-fn footer(k: &Kit, state: &State) -> El {
-    let mut refresh = IconButton::new(&ICON_REFRESH)
-        .variant(IconButtonVariant::GhostMuted)
-        .label("刷新状态")
-        .help("刷新安装与运行状态")
-        .on_press_tx(|state: &mut State, tx: &mut rune::Tx| {
-            if state.busy {
-                return;
-            }
-            state.busy = true;
-            state.activity = Some(Activity::Refresh);
-            state.notice = None;
-            state.refresh();
-            state.busy = false;
-            state.activity = None;
-            tx.wake_after(Duration::from_millis(10));
-        });
-    if state.busy {
-        refresh = refresh.disabled(true);
-    }
-
-    let spinner = if state.busy {
-        Some(Spinner::new().build(k))
-    } else {
-        None
-    };
-
-    let mut right = row().gap(10.0).center_y().child(refresh.build(k));
-    if let Some(spinner) = spinner {
-        right = right.child(spinner);
-    }
-    right = right.child(
-        Button::new("查看项目主页")
-            .variant(ButtonVariant::Ghost)
-            .icon(&ICON_EXTERNAL)
-            .on_press_tx(|state: &mut State, _tx: &mut rune::Tx| {
-                if let Err(error) = open_url(REPOSITORY_URL) {
-                    state.notice = Some(Notice::error(error.to_string()));
-                }
-            })
-            .build(k),
-    );
-
-    row()
-        .w_full()
-        .center_y()
-        .justify_between()
-        .gap(12.0)
-        .pt(2.0)
-        .child(
-            text(format!(
-                "开源、离线运行，不收集任何数据 · 字典 {} 条 / 规则 {} 条",
-                counts().dict_count,
-                counts().rules_count
-            ))
-            .font(k.ty.small)
-            .color(k.c.text_faint),
-        )
-        .child(right)
 }
 
 // ---------------------------------------------------------------------------
@@ -907,6 +868,8 @@ pub fn run() {
     let spec = AppSpec::<State> {
         min_size: Some(MIN_WINDOW_SIZE),
         poll: Some(poll),
+        fonts: FONTS,
+        families: FAMILIES,
         ..AppSpec::new(TOOL_NAME, WINDOW_SIZE, State::init, view)
     };
     let _ = crate::assets::check_assets();

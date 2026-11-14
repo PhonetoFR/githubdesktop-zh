@@ -37,10 +37,13 @@ test('Rune 依赖固定到 dev rev 并带官方 patch', () => {
   assert.match(cargo, /accesskit_windows = \{ path = "vendor\/accesskit_windows" \}/)
 })
 
-test('界面使用 rune-kit 视觉组件', () => {
-  for (const name of ['Button', 'Select', 'Card', 'Badge', 'Spinner', 'IconButton']) {
+test('界面使用 OpenCode 主题与 rune-kit 组件', () => {
+  for (const name of ['Button', 'IconButton', 'Spinner', 'Kit']) {
     assert.match(ui, new RegExp(`\\b${name}\\b`), `缺少 ${name}`)
   }
+  assert.match(ui, /rune_theme_opencode/)
+  assert.match(ui, /FONTS/)
+  assert.match(ui, /FAMILIES/)
   assert.match(ui, /rune::App::new/)
   assert.match(ui, /Titlebar::new/)
   assert.match(ui, /single_instance/)

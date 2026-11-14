@@ -11,7 +11,7 @@
   <a href="https://github.com/PhonetoFR/githubdesktop-zh/releases"><img src="https://img.shields.io/github/downloads/PhonetoFR/githubdesktop-zh/total?style=flat-square&color=0969da" alt="downloads" /></a>
 </p>
 
-<p align="center">一键将 GitHub Desktop 汉化为简体中文，支持随时还原 · Rune 原生界面 · 离线运行</p>
+<p align="center">一键将 GitHub Desktop 汉化为简体中文，支持随时还原 · OpenCode 设计语言 · Rune 原生界面 · 离线运行</p>
 
 ---
 
@@ -27,7 +27,7 @@
 ## 特性
 
 <table>
-<tr><td><strong>Rune 原生界面</strong></td><td>Rust + GPU 渲染，无 Electron / 无 WebView；单文件约 16 MB，冷启动约 0.3 秒</td></tr>
+<tr><td><strong>OpenCode 视觉设计</strong></td><td>OpenCode 主题、Inter / IBM Plex Mono 字体、左侧版本栏与紧凑主面板；Rust + GPU 渲染，无 Electron / WebView</td></tr>
 <tr><td><strong>一键汉化 / 还原</strong></td><td>自动检测安装版本、运行状态和备份状态，只修改所选版本</td></tr>
 <tr><td><strong>安全回滚</strong></td><td>自动备份原文件，写入失败时回滚，不覆盖非本工具文件</td></tr>
 <tr><td><strong>免安装便携</strong></td><td>单个 EXE，不写系统安装项，不依赖 Node / Electron 运行时</td></tr>
@@ -81,7 +81,7 @@ npm run test:rune     # Rust 补丁器测试
 
 | 层 | 技术 | 位置 |
 |---|---|---|
-| 桌面 GUI | Rust + Rune + rune-kit | `rust/src/ui.rs` |
+| 桌面 GUI | Rust + Rune + rune-kit + rune-theme-opencode | `rust/src/ui.rs` |
 | 补丁/还原 | Rust | `rust/src/patcher.rs`、`application.rs`、`install.rs` |
 | 翻译字典 | JSON | `dict/zh-CN.json` |
 | 动态规则 | TypeScript → 生成资产 | `src/rules.ts` |
