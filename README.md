@@ -15,6 +15,14 @@
 
 ---
 
+## 界面预览
+
+<p align="center">
+  <img src="assets/screenshot.png" width="880" alt="GitHub Desktop 汉化补丁界面预览" />
+</p>
+
+<p align="center"><sub>OpenCode 设计语言 · 左侧版本栏 · 深色模式</sub></p>
+
 ## 使用方法
 
 1. 从 [Releases](https://github.com/PhonetoFR/githubdesktop-zh/releases/latest) 下载 `github-desktop-zh-*-portable.exe`
@@ -113,3 +121,13 @@ Rune 固定在 `dev` 的 `4970cffe6a4e90c7d613796be8ce39eb3dcb281b`。
 ## 许可证
 
 [MIT](https://github.com/PhonetoFR/githubdesktop-zh/blob/master/LICENSE)
+
+---
+
+## Star History
+
+<p align="center">
+  <a href="https://star-history.com/#PhonetoFR/githubdesktop-zh&Date">
+    <img src="https://api.star-history.com/svg?repos=PhonetoFR/githubdesktop-zh&type=Date" width="800" alt="Star History Chart" />
+  </a>
+</p>
