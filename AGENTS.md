@@ -4,7 +4,7 @@
 
 ## 1. 项目是什么
 
-Windows 图形化 GitHub Desktop 简体中文补丁工具。v1.2.0 起桌面端已从 Electron 迁移到 **Rust + Rune**，产物为单文件原生 EXE（约 16 MB），保留 CLI。
+Windows 图形化 GitHub Desktop 简体中文补丁工具。v1.2.1 起桌面端已从 Electron 迁移到 **Rust + Rune**，产物为单文件原生 EXE（约 16 MB），保留 CLI。
 
 **原理**:在 GitHub Desktop 的 `index.html` 中加载 `zh/runtime.js`，并修改 `main.js` 注入菜单补丁（劫持 `Menu.buildFromTemplate`）。运行时用 MutationObserver 监听 DOM，把英文文本节点和 `aria-label/title/placeholder/alt` 替换为中文。原文件备份为 `.bak`，补丁和还原失败时自动回滚。
 
@@ -13,7 +13,7 @@ Rune 只替换桌面壳和补丁器；翻译字典、动态规则、`runtime.js`
 - 仓库:`https://github.com/PhonetoFR/githubdesktop-zh`
 - 默认分支:`master`
 - 许可:MIT
-- 当前版本:`1.2.0`（Rune 原生版）
+- 当前版本:`1.2.1`（Rune 原生版）
 
 ## 2. 当前状态(2026-11-14 截止)
 
@@ -23,8 +23,8 @@ Rune 只替换桌面壳和补丁器；翻译字典、动态规则、`runtime.js`
 | 动态规则 `src/rules.ts` | 82 |
 | 桌面框架 | Rune（git rev `4970cffe6a4e90c7d613796be8ce39eb3dcb281b`） |
 | 单元测试 | 23 项 Node + 12 项 Rust（全过） |
-| 版本 | 1.2.0 |
-| 默认产物 | `build/github-desktop-zh-1.2.0-portable.exe`（16.14 MB） |
+| 版本 | 1.2.1 |
+| 默认产物 | `build/github-desktop-zh-1.2.1-portable.exe`（16.14 MB） |
 | 实测启动 | 约 0.30 秒（release；首次签名后可能被杀毒扫描拖慢） |
 | 实测内存 | 约 13 MB 工作集 |
 | 远端 origin | `https://github.com/PhonetoFR/githubdesktop-zh.git` |
