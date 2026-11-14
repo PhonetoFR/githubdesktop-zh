@@ -273,6 +273,7 @@ fn state_badge(k: &Kit, state: PatchState) -> El {
     };
     row()
         .h(18.0)
+        .center_y()
         .px(6.0)
         .radius(4.0)
         .fill(bg)
@@ -297,6 +298,7 @@ fn process_badge(k: &Kit, state: DesktopProcessState, refreshing: bool) -> El {
     };
     row()
         .h(18.0)
+        .center_y()
         .px(6.0)
         .radius(4.0)
         .fill(bg)
