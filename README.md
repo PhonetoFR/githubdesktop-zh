@@ -128,6 +128,6 @@ Rune 固定在 `dev` 的 `4970cffe6a4e90c7d613796be8ce39eb3dcb281b`。
 
 <p align="center">
   <a href="https://star-history.com/#PhonetoFR/githubdesktop-zh&Date">
-    <img src="https://api.star-history.com/svg?repos=PhonetoFR/githubdesktop-zh&type=Date" width="800" alt="Star History Chart" />
+    <img src="https://api.star-history.com/svg?repos=phonetofr/githubdesktop-zh&type=Date" width="800" alt="Star History Chart" />
   </a>
 </p>
