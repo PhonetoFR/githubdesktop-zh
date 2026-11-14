@@ -11,6 +11,8 @@ const ui = fs.readFileSync(path.join(root, 'rust', 'src', 'ui.rs'), 'utf8')
 test('Rune 是默认发行目标', () => {
   assert.equal(pkg.scripts.package, 'npm run package:rune')
   assert.match(pkg.scripts['package:rune'], /build:rune/)
+  assert.match(pkg.scripts['package:rune'], /generate:icon/)
+  assert.match(pkg.scripts['package:rune'], /generate:cert/)
   assert.match(pkg.scripts['package:rune'], /package-rune\.cjs/)
   assert.match(pkg.scripts['build:rune'], /cargo\.cjs build --release/)
   assert.equal(pkg.devDependencies.electron, undefined)

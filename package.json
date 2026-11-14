@@ -13,7 +13,7 @@
     "generate:icon": "node scripts/generate-icon.cjs",
     "generate:cert": "node scripts/generate-cert.cjs",
     "package": "npm run package:rune",
-    "package:rune": "npm run build:rune && npm run generate:cert && npm run clean:package && node scripts/package-rune.cjs",
+    "package:rune": "npm run build:rune && npm run generate:icon && npm run generate:cert && npm run clean:package && node scripts/package-rune.cjs",
     "lint": "eslint src/**/*.ts",
     "test": "npm run build && node --test test/*.test.cjs && node scripts/build-rune-assets.cjs --check",
     "test:rune": "npm run build:rune-assets && node scripts/cargo.cjs test",
