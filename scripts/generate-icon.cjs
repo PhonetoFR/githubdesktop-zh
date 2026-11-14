@@ -97,9 +97,9 @@ function quadraticCurve(start, control, end, steps = 36) {
   return points
 }
 
-const blue = [9, 105, 218, 255]
+const black = [13, 17, 23, 255]
 const white = [255, 255, 255, 255]
-fillRoundedRect(16, 16, 224, 224, 48, blue)
+fillRoundedRect(16, 16, 224, 224, 48, black)
 drawLine(82, 72, 82, 184, 11, white)
 drawCurve(quadraticCurve([82, 112], [153, 112], [174, 94]), 11, white)
 fillCircle(82, 68, 18, white)

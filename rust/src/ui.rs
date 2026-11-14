@@ -14,10 +14,10 @@ use crate::install::{AppInstall, PatchState, find_installs};
 use crate::patcher::{DesktopProcessState, PatchResult, get_desktop_process_state};
 use crate::platform::open_url;
 
-const WINDOW_SIZE: (f32, f32) = (1000.0, 560.0);
-const MIN_WINDOW_SIZE: (f32, f32) = (860.0, 540.0);
+const WINDOW_SIZE: (f32, f32) = (860.0, 640.0);
+const MIN_WINDOW_SIZE: (f32, f32) = (780.0, 560.0);
 const TITLEBAR_HEIGHT: f32 = 42.0;
-const SIDEBAR_WIDTH: f32 = 250.0;
+const SIDEBAR_WIDTH: f32 = 230.0;
 const REPOSITORY_URL: &str = "https://github.com/PhonetoFR/githubdesktop-zh";
 
 // ---------------------------------------------------------------------------
