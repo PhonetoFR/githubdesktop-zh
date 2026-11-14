@@ -28,6 +28,7 @@
 
 <table>
 <tr><td><strong>OpenCode 视觉设计</strong></td><td>OpenCode 主题、Inter / IBM Plex Mono 字体、左侧版本栏与紧凑主面板；Rust + GPU 渲染，无 Electron / WebView</td></tr>
+<tr><td><strong>无终端窗口</strong></td><td>GUI 以 Windows 子系统启动，不会附带控制台；CLI 参数仍可在终端正常输出</td></tr>
 <tr><td><strong>一键汉化 / 还原</strong></td><td>自动检测安装版本、运行状态和备份状态，只修改所选版本</td></tr>
 <tr><td><strong>安全回滚</strong></td><td>自动备份原文件，写入失败时回滚，不覆盖非本工具文件</td></tr>
 <tr><td><strong>免安装便携</strong></td><td>单个 EXE，不写系统安装项，不依赖 Node / Electron 运行时</td></tr>

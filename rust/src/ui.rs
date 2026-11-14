@@ -1,14 +1,12 @@
 use std::sync::mpsc::{self, Receiver, TryRecvError};
 use std::time::Duration;
 
-use rune::{AppSpec, Color, Cx, El, TextStyle, Titlebar, col, el, icon, row, text};
-use rune_kit::{
-    Button, ButtonVariant, ControlSize, IconButton, IconButtonVariant, Kit, Spinner,
-};
+use rune::{AppSpec, Color, Cx, El, Icon, TextStyle, Titlebar, col, el, icon, row, text};
+use rune_kit::{Button, ButtonVariant, ControlSize, IconButton, IconButtonVariant, Kit, Spinner};
 use rune_theme_opencode::{FAMILIES, FONTS, icons};
 
 use crate::application::{InstallView, Snapshot, apply_patch, get_snapshot, restore_original};
-use crate::assets::{counts, tool_version, TOOL_NAME};
+use crate::assets::{TOOL_NAME, counts, tool_version};
 use crate::error::Result;
 use crate::install::{AppInstall, PatchState, find_installs};
 use crate::patcher::{DesktopProcessState, PatchResult, get_desktop_process_state};
@@ -19,6 +17,13 @@ const MIN_WINDOW_SIZE: (f32, f32) = (780.0, 560.0);
 const TITLEBAR_HEIGHT: f32 = 42.0;
 const SIDEBAR_WIDTH: f32 = 230.0;
 const REPOSITORY_URL: &str = "https://github.com/PhonetoFR/githubdesktop-zh";
+
+/// Monochrome silhouette of the app icon: three nodes on a branch.
+static APP_MARK: Icon = Icon {
+    name: "zh-app-mark",
+    view: 24.0,
+    body: r#"<g fill="currentColor"><circle cx="6" cy="5" r="2.5"/><circle cx="18" cy="7" r="2.5"/><circle cx="6" cy="19" r="2.5"/><path d="M6 7.5v9M8.5 11.2h3.6c3.1 0 5.9-1.4 5.9-3.7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></g>"#,
+};
 
 // ---------------------------------------------------------------------------
 // State
@@ -278,12 +283,7 @@ fn state_badge(k: &Kit, state: PatchState) -> El {
         .radius(4.0)
         .fill(bg)
         .label(state.label())
-        .child(
-            text(state.label())
-                .font(k.ty.small)
-                .color(fg)
-                .a11y_hidden(),
-        )
+        .child(text(state.label()).font(k.ty.small).color(fg).a11y_hidden())
 }
 
 fn process_badge(k: &Kit, state: DesktopProcessState, refreshing: bool) -> El {
@@ -323,11 +323,7 @@ fn process_color(k: &Kit, state: DesktopProcessState) -> Color {
     }
 }
 
-fn process_copy(
-    k: &Kit,
-    state: DesktopProcessState,
-    refreshing: bool,
-) -> (String, String, Color) {
+fn process_copy(k: &Kit, state: DesktopProcessState, refreshing: bool) -> (String, String, Color) {
     if refreshing {
         return (
             "正在检测 GitHub Desktop".to_owned(),
@@ -378,7 +374,7 @@ fn view(state: &State, cx: &mut Cx<State>) -> El {
         .pr(insets.trailing + 10.0)
         .gap(8.0)
         .center_y()
-        .child(icon(&icons::GITHUB, 16.0).color(k.c.icon_muted))
+        .child(icon(&APP_MARK, 16.0).color(k.c.icon_muted))
         .child(
             text(TOOL_NAME)
                 .font(text_primary(12.5, 500.0))
@@ -451,8 +447,7 @@ fn sidebar(state: &State, k: &Kit) -> El {
                     state.notice = None;
                 })
                 .child(
-                    el()
-                        .size(7.0, 7.0)
+                    el().size(7.0, 7.0)
                         .radius(3.5)
                         .fill(state_color(k, status))
                         .a11y_hidden(),
@@ -512,20 +507,18 @@ fn sidebar(state: &State, k: &Kit) -> El {
                 .px(8.0),
         )
         .child(
-            row()
-                .px(4.0)
-                .child(
-                    Button::new("查看项目主页")
-                        .variant(ButtonVariant::GhostMuted)
-                        .control_size(ControlSize::Small)
-                        .icon(&icons::ARROW_UP_RIGHT)
-                        .on_press_tx(|state: &mut State, _tx: &mut rune::Tx| {
-                            if let Err(error) = open_url(REPOSITORY_URL) {
-                                state.notice = Some(Notice::error(error.to_string()));
-                            }
-                        })
-                        .build(k),
-                ),
+            row().px(4.0).child(
+                Button::new("查看项目主页")
+                    .variant(ButtonVariant::GhostMuted)
+                    .control_size(ControlSize::Small)
+                    .icon(&icons::ARROW_UP_RIGHT)
+                    .on_press_tx(|state: &mut State, _tx: &mut rune::Tx| {
+                        if let Err(error) = open_url(REPOSITORY_URL) {
+                            state.notice = Some(Notice::error(error.to_string()));
+                        }
+                    })
+                    .build(k),
+            ),
         )
 }
 
@@ -534,7 +527,9 @@ fn main_panel(state: &State, k: &Kit) -> El {
     let status = selected
         .map(|entry| entry.status.state)
         .unwrap_or(PatchState::None);
-    let has_backup = selected.map(|entry| entry.status.has_backup).unwrap_or(false);
+    let has_backup = selected
+        .map(|entry| entry.status.has_backup)
+        .unwrap_or(false);
     let refreshing = state.busy && state.activity == Some(Activity::Refresh);
     let (process_title, process_description, process_dot_color) =
         process_copy(k, state.process_state(), refreshing);
@@ -597,8 +592,7 @@ fn main_panel(state: &State, k: &Kit) -> El {
                         .gap(8.0)
                         .center_y()
                         .child(
-                            el()
-                                .size(8.0, 8.0)
+                            el().size(8.0, 8.0)
                                 .radius(4.0)
                                 .fill(process_dot_color)
                                 .a11y_hidden(),
@@ -622,39 +616,36 @@ fn main_panel(state: &State, k: &Kit) -> El {
                 .child(version_panel(selected, status, k)),
         )
         .child(
-            col()
-                .gap(8.0)
-                .child(section_label(k, "安装详情"))
-                .child(
-                    col()
-                        .w_full()
-                        .gap(0.0)
-                        .child(setting_row(k, "汉化状态", state_badge(k, status)))
-                        .child(divider(k))
-                        .child(setting_row(
-                            k,
-                            "原文件备份",
-                            text(if has_backup {
-                                "已安全备份"
-                            } else {
-                                "尚未创建"
-                            })
+            col().gap(8.0).child(section_label(k, "安装详情")).child(
+                col()
+                    .w_full()
+                    .gap(0.0)
+                    .child(setting_row(k, "汉化状态", state_badge(k, status)))
+                    .child(divider(k))
+                    .child(setting_row(
+                        k,
+                        "原文件备份",
+                        text(if has_backup {
+                            "已安全备份"
+                        } else {
+                            "尚未创建"
+                        })
+                        .font(k.ty.ui)
+                        .color(if has_backup {
+                            k.c.text_base
+                        } else {
+                            k.c.text_muted
+                        }),
+                    ))
+                    .child(divider(k))
+                    .child(setting_row(
+                        k,
+                        "可用版本",
+                        text(format!("{} 个", state.installs.len()))
                             .font(k.ty.ui)
-                            .color(if has_backup {
-                                k.c.text_base
-                            } else {
-                                k.c.text_muted
-                            }),
-                        ))
-                        .child(divider(k))
-                        .child(setting_row(
-                            k,
-                            "可用版本",
-                            text(format!("{} 个", state.installs.len()))
-                                .font(k.ty.ui)
-                                .color(k.c.text_base),
-                        )),
-                ),
+                            .color(k.c.text_base),
+                    )),
+            ),
         );
 
     let mut content = content;
@@ -720,7 +711,9 @@ fn main_panel(state: &State, k: &Kit) -> El {
                 .w_full()
                 .grow(1.0)
                 .min_h(0.0)
-                .scroll(rune::ScrollSpec { stick_bottom: false })
+                .scroll(rune::ScrollSpec {
+                    stick_bottom: false,
+                })
                 .child(content),
         )
 }
@@ -744,7 +737,7 @@ fn version_panel(selected: Option<&InstallView>, status: PatchState, k: &Kit) ->
             row()
                 .gap(8.0)
                 .center_y()
-                .child(icon(&icons::GITHUB, 16.0).color(k.c.icon_muted))
+                .child(icon(&APP_MARK, 16.0).color(k.c.icon_muted))
                 .child(
                     text(version)
                         .font(text_primary(14.0, 600.0))
@@ -759,11 +752,7 @@ fn version_panel(selected: Option<&InstallView>, status: PatchState, k: &Kit) ->
             .w_full()
             .gap(8.0)
             .center_y()
-            .child(
-                text("安装目录")
-                    .font(k.ty.small)
-                    .color(k.c.text_faint),
-            )
+            .child(text("安装目录").font(k.ty.small).color(k.c.text_faint))
             .child(
                 text(path)
                     .font(k.ty.small)

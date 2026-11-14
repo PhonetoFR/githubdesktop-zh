@@ -4,7 +4,7 @@
 
 ## 1. 项目是什么
 
-Windows 图形化 GitHub Desktop 简体中文补丁工具。v1.3.2 起桌面端已从 Electron 迁移到 **Rust + Rune**，产物为单文件原生 EXE（约 17 MB），保留 CLI。
+Windows 图形化 GitHub Desktop 简体中文补丁工具。v1.3.3 起桌面端已从 Electron 迁移到 **Rust + Rune**，产物为单文件原生 EXE（约 17 MB），保留 CLI。
 
 **原理**:在 GitHub Desktop 的 `index.html` 中加载 `zh/runtime.js`，并修改 `main.js` 注入菜单补丁（劫持 `Menu.buildFromTemplate`）。运行时用 MutationObserver 监听 DOM，把英文文本节点和 `aria-label/title/placeholder/alt` 替换为中文。原文件备份为 `.bak`，补丁和还原失败时自动回滚。
 
@@ -13,7 +13,7 @@ Rune 只替换桌面壳和补丁器；翻译字典、动态规则、`runtime.js`
 - 仓库:`https://github.com/PhonetoFR/githubdesktop-zh`
 - 默认分支:`master`
 - 许可:MIT
-- 当前版本:`1.3.2`（Rune 原生版）
+- 当前版本:`1.3.3`（Rune 原生版）
 
 ## 2. 当前状态(2026-11-14 截止)
 
@@ -23,8 +23,8 @@ Rune 只替换桌面壳和补丁器；翻译字典、动态规则、`runtime.js`
 | 动态规则 `src/rules.ts` | 82 |
 | 桌面框架 | Rune（git rev `4970cffe6a4e90c7d613796be8ce39eb3dcb281b`） |
 | 单元测试 | 23 项 Node + 12 项 Rust（全过） |
-| 版本 | 1.3.2 |
-| 默认产物 | `build/github-desktop-zh-1.3.2-portable.exe`（17.31 MB） |
+| 版本 | 1.3.3 |
+| 默认产物 | `build/github-desktop-zh-1.3.3-portable.exe`（17.31 MB） |
 | 实测启动 | 约 0.30 秒（release；首次签名后可能被杀毒扫描拖慢） |
 | 实测内存 | 约 13 MB 工作集 |
 | 远端 origin | `https://github.com/PhonetoFR/githubdesktop-zh.git` |
@@ -93,6 +93,8 @@ npm run lint                # eslint src/**/*.ts
 - **不要用 winres 写 Windows 资源**：GNU `ld` 只会保留一个 `.rsrc`，会丢掉版本/图标。改用 `rcedit`（`package-rune.cjs`）。
 - **不要打印资产体积用字符数**：`runtime.js` 约 99 KB UTF-8、75 K 字符；测试用 `Buffer.byteLength`。
 - **单实例**：`rune::single_instance` 返回 `false` 时必须直接 return，否则第二个进程会留下不可见窗口。
+- **Release 不显示终端**：`main.rs` 使用 `windows_subsystem = "windows"`，GUI 启动无控制台；带 CLI 参数时会 `AttachConsole` 到父终端并用 `WriteConsoleW` 输出。改这里后要分别实测 GUI 无控制台 + `--status/--version`。
+- **标题栏图标**：使用 `ui.rs` 中的 `APP_MARK`（应用图标的单色剪影），不要再换回 `icons::GITHUB`。
 - **补丁操作在后台线程**：`start_action` 用 `mpsc` + `poll` 回传结果，遵守 Rune “帧循环内不做文件 I/O”的约束。
 - **高 DPI 截图**：PowerShell 默认 DPI 虚拟化，截图必须 `SetProcessDpiAwarenessContext(-4)`，否则只截到左上角。
 - **Rune 的 `Color::hex` 是实例方法**：解析十六进制用 `rune::color::hex("#rrggbb")`。
